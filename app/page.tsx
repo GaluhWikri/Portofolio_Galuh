@@ -4,8 +4,16 @@ import Lanyard from "./components/Lanyard/Lanyard";
 import Navbar from "./components/Navbar/navbar";
 import { motion } from "framer-motion";
 import RotatingText from "./components/RotatingText/RotatingText";
+import React from "react";
+import dynamic from 'next/dynamic';
 
-// Definisi animasi (tetap sama)
+// Dynamically import TextPressure component with SSR turned off
+const TextPressure = dynamic(
+  () => import('./components/TextPressure/TextPressure'),
+  { ssr: false }
+);
+
+// Animation definition (remains the same)
 const sectionAnimation = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number = 0) => ({
@@ -19,7 +27,7 @@ const sectionAnimation = {
   })
 };
 
-// Kartu Proyek dengan animasi teks
+// Project Card component (remains the same)
 const ProjectCard = ({ title, description, tech }: { title: string, description: string, tech: string[] }) => (
   <motion.div
     className="border border-gray-800 bg-black bg-opacity-20 p-6 rounded-lg transition-all hover:border-gray-700 hover:bg-opacity-30"
@@ -48,20 +56,18 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
           <div
-            className="absolute top-0 right-0 md:right-8 lg:right-16 w-80 md:w-96 lg:w-[500px] h-full z-10"
+            // ---> [UBAHAN] Menggunakan nilai `right` negatif untuk mendorong Lanyard keluar layar
+            className="absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10"
             style={{ transform: 'translateY(-10%)' }}
           >
-            <Lanyard position={[0, 0, 20]} gravity={[0, -40, 0]} />
+            <Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} />
+          </div>
+          
+          {/* Container for the TextPressure component */}
+          <div className="w-full max-w-5xl h-56">
+             <TextPressure text="PORTOFOLIO" />
           </div>
 
-          <h1 className="text-8xl md:text-[9rem] font-black tracking-wider">
-            <RotatingText
-              texts={["PORTFOLIO"]}
-              auto={false}
-              staggerDuration={0.08}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            />
-          </h1>
         </section>
 
         {/* Project Section */}

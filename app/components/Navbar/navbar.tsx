@@ -11,10 +11,9 @@ export default function Navbar() {
     ];
 
     return (
-        // Posisikan kembali ke tengah
         <nav className="fixed top-8 left-1/2 -translate-x-1/2 z-50">
             <motion.div
-                className="flex items-center gap-8" // Perbesar jarak
+                className="flex items-center gap-8"
                 initial={{ y: -30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
