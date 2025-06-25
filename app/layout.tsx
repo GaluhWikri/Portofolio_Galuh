@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
-// Hapus atau komentari import Cinzel
-// import { Cinzel } from "next/font/google";
-import { VT323 } from "next/font/google"; // <-- Ganti dengan font pixel
+import { Inter_Tight } from "next/font/google"; // <-- Mengimpor Inter Tight
 import "./globals.css";
 
-// Konfigurasi font baru
-const vt323 = VT323({
+// Konfigurasi untuk font Inter Tight
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  weight: "400", // Font pixel biasanya hanya punya satu weight
-  variable: "--font-primary",
+  variable: "--font-primary", // Tetap menggunakan variabel CSS yang sama
 });
 
 export const metadata: Metadata = {
   title: "Portfolio",
-  description: "Pixelated Portfolio", // Deskripsi bisa diupdate
+  description: "Modern Portfolio", // Deskripsi dapat diperbarui
 };
 
 export default function RootLayout({
@@ -23,8 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* Terapkan variabel font baru ke body */}
-      <body className={`${vt323.variable} antialiased`}>
+      {/* Menerapkan variabel font baru ke body */}
+      <body className={`${interTight.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

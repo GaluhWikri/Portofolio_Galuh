@@ -85,7 +85,8 @@ export default function Home() {
                 About Me
               </h2>
               <p className="text-gray-400 font-sans leading-relaxed">
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+                I'm passionate about programming and software development, always eager to learn and build new things. A self-proclaimed expert in “Google Searching” and “Copy-Pasting” — because sometimes, the right snippet at the right time is all you need.
+                Feel free to browse through my repositories. Let’s explore the digital world together with the power of Ctrl+C and Ctrl+V! 💻
               </p>
             </div>
 
@@ -93,21 +94,24 @@ export default function Home() {
               <h2 className="text-4xl font-bold mb-4">
                 Education
               </h2>
-              <p className="text-gray-400 font-sans leading-relaxed">
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever.
-              </p>
+              <div className="text-gray-400 font-sans leading-relaxed">
+                <div className="flex justify-between items-baseline">
+                  <h3 className="font-bold text-white">Universitas Pasundan</h3>
+                  <p className="text-sm text-gray-500">October 2022 - Present</p>
+                </div>
+                <p>Informatic Engineering</p>
+              </div>
             </div>
 
             <div className="flex gap-6 items-center">
               {/* Ganti href dengan link sosial media Anda */}
-              <a href="#" aria-label="Instagram" className="text-white hover:text-gray-400 transition-colors">
-                {/* Anda bisa menggunakan library ikon seperti react-icons */}
-                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M12.315 2c-4.048 0-4.555.018-6.138.09-1.584.072-2.67.34-3.62.74-1.02.422-1.802 1.204-2.224 2.224-.398.95-.668 2.036-.74 3.62C-.023 7.445 0 7.952 0 12s.018 4.555.09 6.138c.072 1.584.34 2.67.74 3.62.422 1.02 1.204 1.802 2.224 2.224.95.398 2.036.668 3.62.74 1.583.072 2.09.09 6.138.09s4.555-.018 6.138-.09c1.584-.072 2.67-.34 3.62-.74 1.02-.422 1.802-1.204 2.224-2.224.398-.95.668-2.036.74-3.62.072-1.583.09-2.09.09-6.138s-.018-4.555-.09-6.138c-.072-1.584-.34-2.67-.74-3.62-.422-1.02-1.204-1.802-2.224-2.224-.95-.398-2.036-.668-3.62-.74C16.87 2.018 16.362 2 12.315 2zm0 1.802c4.002 0 4.48.016 6.062.088 1.46.066 2.258.324 2.88.582.752.312 1.28.84 1.594 1.594.258.622.516 1.42.582 2.88.072 1.582.088 2.06.088 6.062s-.016 4.48-.088 6.062c-.066 1.46-.324 2.258-.582 2.88-.312.752-.84 1.28-1.594 1.594-.622.258-1.42.516-2.88.582-1.582.072-2.06.088-6.062.088s-4.48-.016-6.062-.088c-1.46-.066-2.258-.324-2.88-.582-.752-.312-1.28-.84-1.594-1.594-.258-.622-.516-1.42-.582-2.88-.072-1.582-.088-2.06-.088-6.062s.016-4.48.088-6.062c.066-1.46.324-2.258.582-2.88.312-.752.84-1.28 1.594-1.594.622-.258 1.42.516 2.88.582C7.835 3.82 8.313 3.802 12.315 3.802zM12 8.12A3.88 3.88 0 1012 15.88 3.88 3.88 0 0012 8.12zm0 6.162A2.28 2.28 0 1112 9.72a2.28 2.28 0 010 4.562zm6.36-7.832a.908.908 0 100-1.816.908.908 0 000 1.816z" clipRule="evenodd" /></svg>
+              <a href="https://www.instagram.com/galuh.wikri/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white hover:text-gray-400 transition-colors">
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163m0-1.802C8.72 0 8.337.012 7.053.072 2.695.272.273 2.69.073 7.052.013 8.337 0 8.72 0 12s.013 3.663.072 4.947c.2 4.358 2.618 6.78 6.98 6.98C8.337 23.988 8.72 24 12 24s3.663-.013 4.947-.072c4.354-.2 6.782-2.618 6.979-6.98.06-1.284.072-1.66.072-4.947s-.012-3.663-.072-4.947c-.197-4.358-2.625-6.78-6.98-6.979C15.663.012 15.28 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z" /></svg>
               </a>
-              <a href="#" aria-label="GitHub" className="text-white hover:text-gray-400 transition-colors">
+              <a href="https://github.com/GaluhWikri" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-white hover:text-gray-400 transition-colors">
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.564 9.564 0 012.503.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.378.203 2.397.1 2.65.64.7 1.03 1.595 1.03 2.688 0 3.848-2.338 4.695-4.566 4.942.359.308.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z" clipRule="evenodd" /></svg>
               </a>
-              <a href="#" aria-label="LinkedIn" className="text-white hover:text-gray-400 transition-colors">
+              <a href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-white hover:text-gray-400 transition-colors">
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
               </a>
             </div>
@@ -126,7 +130,7 @@ export default function Home() {
             </div>
           </motion.div>
         </motion.section>
-        
+
         {/* Project Section */}
         <motion.section
           id="project"
@@ -190,3 +194,4 @@ export default function Home() {
     </>
   );
 }
+  
