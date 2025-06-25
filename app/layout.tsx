@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import { Cinzel } from "next/font/google"; // Import font Cinzel
+// Hapus atau komentari import Cinzel
+// import { Cinzel } from "next/font/google";
+import { VT323 } from "next/font/google"; // <-- Ganti dengan font pixel
 import "./globals.css";
 
-// Konfigurasi font Cinzel
-const cinzel = Cinzel({
+// Konfigurasi font baru
+const vt323 = VT323({
   subsets: ["latin"],
-  variable: "--font-primary", // Gunakan nama variabel --font-primary
+  weight: "400", // Font pixel biasanya hanya punya satu weight
+  variable: "--font-primary",
 });
 
 export const metadata: Metadata = {
   title: "Portfolio",
-  description: "Classic Portfolio",
+  description: "Pixelated Portfolio", // Deskripsi bisa diupdate
 };
 
 export default function RootLayout({
@@ -20,7 +23,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${cinzel.variable} antialiased`}>
+      {/* Terapkan variabel font baru ke body */}
+      <body className={`${vt323.variable} antialiased`}>
         {children}
       </body>
     </html>
