@@ -31,6 +31,27 @@ const sectionAnimation = {
   })
 };
 
+// Varian animasi untuk container kalimat
+const sentenceAnimation = {
+  hidden: { opacity: 1 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04, // Jeda antar kata
+    },
+  },
+};
+
+// Varian animasi untuk setiap kata (efek "reveal")
+const wordAnimation = {
+  hidden: { y: '100%' }, // Mulai dari bawah (tersembunyi)
+  visible: {
+    y: '0%', // Pindah ke posisi asli (terlihat)
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+
 // Komponen ProjectCard
 const ProjectCard = ({ title, description, tech }: { title: string, description: string, tech: string[] }) => (
   <motion.div
@@ -53,6 +74,9 @@ const ProjectCard = ({ title, description, tech }: { title: string, description:
 
 
 export default function Home() {
+  const aboutMeText = "I'm passionate about programming and software development, always eager to learn and build new things. A self-proclaimed expert in “Google Searching” and “Copy-Pasting” — because sometimes, the right snippet at the right time is all you need. Feel free to browse through my repositories. Let’s explore the digital world together with the power of Ctrl+C and Ctrl+V! 💻";
+  const educationText = "Currently pursuing a degree in Informatic Engineering at Universitas Pasundan, focusing on software development and web technologies.";
+
   return (
     <>
       <Navbar />
@@ -74,33 +98,61 @@ export default function Home() {
         <motion.section
           id="about"
           className="py-24 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-start"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
         >
           {/* Kolom Kiri: About, Education, Socials */}
-          <motion.div className="md:col-span-2 text-left space-y-8" variants={sectionAnimation}>
+          <motion.div
+            className="md:col-span-2 text-left space-y-8"
+            variants={sectionAnimation}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
             <div>
               <h2 className="text-4xl font-bold mb-4">
                 About Me
               </h2>
-              <p className="text-gray-400 font-sans leading-relaxed">
-                I'm passionate about programming and software development, always eager to learn and build new things. A self-proclaimed expert in “Google Searching” and “Copy-Pasting” — because sometimes, the right snippet at the right time is all you need.
-                Feel free to browse through my repositories. Let’s explore the digital world together with the power of Ctrl+C and Ctrl+V! 💻
-              </p>
+              <motion.p
+                className="text-gray-400 font-sans leading-relaxed"
+                variants={sentenceAnimation}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.5 }} // PERUBAHAN UTAMA DI SINI
+              >
+                {aboutMeText.split(" ").map((word, index) => (
+                  <span key={word + "-" + index} className="inline-block overflow-hidden pb-1">
+                    <motion.span
+                      variants={wordAnimation}
+                      className="inline-block"
+                    >
+                      {word}{"\u00A0"}
+                    </motion.span>
+                  </span>
+                ))}
+              </motion.p>
             </div>
 
             <div>
               <h2 className="text-4xl font-bold mb-4">
                 Education
               </h2>
-              <div className="text-gray-400 font-sans leading-relaxed">
-                <div className="flex justify-between items-baseline">
-                  <h3 className="font-bold text-white">Universitas Pasundan</h3>
-                  <p className="text-sm text-gray-500">October 2022 - Present</p>
-                </div>
-                <p>Informatic Engineering</p>
-              </div>
+              <motion.p
+                className="text-gray-400 font-sans leading-relaxed"
+                variants={sentenceAnimation}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.5 }} // DAN DI SINI
+              >
+                {educationText.split(" ").map((word, index) => (
+                  <span key={word + "-" + index} className="inline-block overflow-hidden pb-1">
+                    <motion.span
+                      variants={wordAnimation}
+                      className="inline-block"
+                    >
+                      {word}{"\u00A0"}
+                    </motion.span>
+                  </span>
+                ))}
+              </motion.p>
             </div>
 
             <div className="flex gap-6 items-center">
@@ -179,19 +231,8 @@ export default function Home() {
           </motion.div>
         </motion.section>
 
-        {/* Footer */}
-        <footer className="text-center py-8 text-gray-700 text-sm font-sans">
-          <motion.p
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.8 }}
-            variants={sectionAnimation}
-          >
-            <RotatingText texts={[`© ${new Date().getFullYear()} Galuh Wikri. All Rights Reserved.`]} auto={false} staggerDuration={0.01} splitBy="words" />
-          </motion.p>
-        </footer>
+
       </main>
     </>
   );
 }
-  
