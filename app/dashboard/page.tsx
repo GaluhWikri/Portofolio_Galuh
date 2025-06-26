@@ -1,20 +1,22 @@
+// app/dashboard/page.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-// Tipe data untuk menjaga konsistensi
+// Interface untuk tipe data agar konsisten
 interface Project {
-    id?: number; // ID bisa jadi undefined untuk item baru
+    id?: number;
     title: string;
     tech: string[];
-    imgSrc: string;
+    imgSrc: string; // Akan berisi data Base64
 }
 
 interface Tool {
     id?: number;
     name: string;
-    icon: string;
+    icon: string; // Akan berisi data Base64
 }
 
 interface PortfolioData {
@@ -34,28 +36,34 @@ export default function Dashboard() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [uploading, setUploading] = useState<{ type: 'project' | 'tool'; index: number } | null>(null);
+    const [readingFile, setReadingFile] = useState<{ type: string; index: number } | null>(null);
 
-    const fetchData = () => {
+    // Fungsi untuk mengambil data dari server
+    const fetchData = async () => {
         setLoading(true);
-        fetch('/api/data', { cache: 'no-store' })
-            .then(res => {
-                if (!res.ok) { return res.json().then(errData => { throw new Error(errData.message || 'Unknown server error'); }); }
-                return res.json();
-            })
-            .then(initialData => {
-                setData(initialData);
-                setError(null);
-            })
-            .catch(err => {
-                console.error("Failed to load data:", err);
-                setError(err.message);
-            })
-            .finally(() => { setLoading(false); });
+        setError(null);
+        try {
+            const res = await fetch('/api/data', { cache: 'no-store' });
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || 'Gagal memuat data dari server.');
+            }
+            const initialData = await res.json();
+            setData(initialData);
+        } catch (err: any) {
+            console.error("Gagal memuat data:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    useEffect(() => { fetchData(); }, []);
+    // Jalankan fetchData saat komponen pertama kali dimuat
+    useEffect(() => {
+        fetchData();
+    }, []);
 
+    // Fungsi untuk menangani perubahan pada input form biasa
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setData(prev => {
@@ -68,108 +76,196 @@ export default function Dashboard() {
         });
     };
 
-    const handleArrayChange = (arrayName: 'projects' | 'tools', index: number, field: string, value: string) => {
+    // Fungsi untuk menambah item baru (project atau tool)
+    const handleAddItem = (arrayName: 'projects' | 'tools') => {
+        setData(prev => {
+            if (!prev) return prev;
+            const newItem = arrayName === 'projects'
+                ? { title: 'Proyek Baru', tech: [], imgSrc: '' }
+                : { name: 'Tool Baru', icon: '' };
+            return { ...prev, [arrayName]: [...prev[arrayName], newItem as any] };
+        });
+    };
+
+    // Fungsi untuk menghapus item dari array
+    const handleRemoveItem = (arrayName: 'projects' | 'tools', index: number) => {
+        setData(prev => {
+            if (!prev) return prev;
+            return { ...prev, [arrayName]: (prev[arrayName] as any[]).filter((_, i) => i !== index) };
+        });
+    };
+
+    // Fungsi ini menangani perubahan pada field di dalam array
+    const handleArrayChange = (arrayName: 'projects' | 'tools', index: number, field: string, value: string | string[]) => {
         setData(prevData => {
-            if (!prevData || !Array.isArray(prevData[arrayName])) return prevData;
-            const newArray = [...prevData[arrayName]];
+            if (!prevData) return prevData;
+            const newArray = [...(prevData[arrayName] as any[])];
             const item = { ...newArray[index] };
-            if (field === 'tech' && 'tech' in item) { (item as Project).tech = value.split(',').map(t => t.trim()); } else { (item as any)[field] = value; }
+
+            if (field === 'tech' && 'tech' in item && typeof value === 'string') {
+                (item as Project).tech = value.split(',').map(t => t.trim());
+            } else {
+                (item as any)[field] = value;
+            }
+
             newArray[index] = item;
             return { ...prevData, [arrayName]: newArray };
         });
     };
 
-    const handleAddItem = (arrayName: 'projects' | 'tools') => {
-        setData(prev => {
-            if (!prev || !Array.isArray(prev[arrayName])) return prev;
-            const newItem = arrayName === 'projects' ? { title: 'New Project', tech: [], imgSrc: '' } : { name: 'New Tool', icon: '' };
-            return { ...prev, [arrayName]: [...prev[arrayName], newItem] };
-        });
-    };
-
-    const handleRemoveItem = (arrayName: 'projects' | 'tools', index: number) => {
-        setData(prev => {
-            if (!prev || !Array.isArray(prev[arrayName])) return prev;
-            return { ...prev, [arrayName]: prev[arrayName].filter((_, i) => i !== index) };
-        });
-    };
-
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'project' | 'tool', index: number) => {
+    // Fungsi untuk membaca file dari input dan mengubahnya menjadi Base64
+    const handleFileRead = (e: React.ChangeEvent<HTMLInputElement>, type: 'projects' | 'tools', index: number) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setUploading({ type, index });
-        const formData = new FormData();
-        formData.append('file', file);
-        try {
-            const response = await fetch('/api/upload', { method: 'POST', body: formData });
-            const result = await response.json();
-            if (!response.ok) { throw new Error(result.message || 'Upload failed due to a server error.'); }
-            const fieldToUpdate = type === 'project' ? 'imgSrc' : 'icon';
-            handleArrayChange(type, index, fieldToUpdate, result.path);
-        } catch (error: any) {
-            console.error('Upload Error:', error);
-            alert(`Upload Error: ${error.message}`);
-        } finally { setUploading(null); }
+
+        setReadingFile({ type, index });
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+            const base64String = event.target?.result as string;
+            const fieldToUpdate = type === 'projects' ? 'imgSrc' : 'icon';
+            handleArrayChange(type, index, fieldToUpdate, base64String);
+            setReadingFile(null);
+        };
+
+        reader.onerror = (error) => {
+            console.error("Error reading file:", error);
+            setError("Gagal membaca file.");
+            setReadingFile(null);
+        };
+
+        reader.readAsDataURL(file);
     };
 
+    // Fungsi untuk menyimpan seluruh perubahan ke server
     const handleSave = async () => {
         if (!data) return;
         setSaving(true);
         setMessage('');
         setError(null);
         try {
-            const response = await fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            const response = await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
             const result = await response.json();
-            if (!response.ok) { throw new Error(result.message || 'Failed to save data.'); }
+            if (!response.ok) {
+                throw new Error(result.message || 'Gagal menyimpan data.');
+            }
             setMessage(result.message);
+            // Muat ulang data untuk sinkronisasi dengan database
             fetchData();
-        } catch (error: any) { setError(error.message); }
-        finally {
+        } catch (error: any) {
+            setError(error.message);
+        } finally {
             setSaving(false);
-            setTimeout(() => { setMessage(''); setError(null); }, 4000);
+            setTimeout(() => {
+                setMessage('');
+                setError(null);
+            }, 5000);
         }
     };
 
     if (loading) return <p className="text-center p-10 text-white">Loading dashboard...</p>;
-    if (error) return <p className="text-center p-10 text-red-400 bg-red-900/20 rounded-lg m-8">Error: {error}</p>;
-    if (!data) return <p className="text-center p-10 text-yellow-400">No data found. Please check API and database connection.</p>;
+    if (error) return (
+        <div className="max-w-4xl mx-auto p-4">
+            <p className="text-center p-10 text-red-400 bg-red-900/20 rounded-lg m-8">Error: {error}</p>
+            <button onClick={fetchData} className="block mx-auto px-4 py-2 bg-blue-600 rounded-md">Coba Lagi</button>
+        </div>
+    );
+    if (!data) return <p className="text-center p-10 text-yellow-400">Data tidak ditemukan.</p>;
 
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8 bg-gray-900 text-white font-sans min-h-screen">
-            <div className="flex justify-between items-center mb-8"><h1 className="text-4xl font-bold">Dashboard</h1><a href="/" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline">Lihat Portofolio</a></div>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-4xl font-bold">Dashboard</h1>
+                <a href="/" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:underline">
+                    Lihat Portofolio
+                </a>
+            </div>
+
+            {message && <div className="mb-4 p-3 rounded-md bg-green-900/50 text-green-300">{message}</div>}
+
             <div className="space-y-12">
-                <div><h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">About Me</h2><textarea name="aboutMe" value={data.aboutMe} onChange={handleInputChange} rows={5} className="w-full p-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
-                <div><h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Education</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-gray-400">University</label><input type="text" name="education.university" value={data.education.university} onChange={handleInputChange} className="w-full mt-1 p-2 bg-gray-800 border border-gray-700 rounded-md" /></div><div><label className="block text-sm font-medium text-gray-400">Major</label><input type="text" name="education.major" value={data.education.major} onChange={handleInputChange} className="w-full mt-1 p-2 bg-gray-800 border border-gray-700 rounded-md" /></div><div><label className="block text-sm font-medium text-gray-400">Period</label><input type="text" name="education.period" value={data.education.period} onChange={handleInputChange} className="w-full mt-1 p-2 bg-gray-800 border border-gray-700 rounded-md" /></div></div></div>
                 <div>
-                    <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2"><h2 className="text-2xl font-semibold">Projects</h2><button onClick={() => handleAddItem('projects')} className="text-sm bg-green-600 px-3 py-1 rounded-md hover:bg-green-700">+</button></div>
-                    <div className="space-y-6">{data.projects.map((project, index) => (
-                        // PERBAIKAN: Gunakan ID unik sebagai key
-                        <div key={project.id || `project-${index}`} className="bg-gray-800 p-4 rounded-lg flex flex-col md:flex-row gap-4 items-start">
-                            <div className="flex-grow space-y-3 w-full">
+                    <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">About Me</h2>
+                    <textarea name="aboutMe" value={data.aboutMe} onChange={handleInputChange} rows={5} className="w-full p-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <div>
+                    <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Education</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400">University</label>
+                            <input type="text" name="education.university" value={data.education.university} onChange={handleInputChange} className="w-full mt-1 p-2 bg-gray-800 border border-gray-700 rounded-md" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400">Major</label>
+                            <input type="text" name="education.major" value={data.education.major} onChange={handleInputChange} className="w-full mt-1 p-2 bg-gray-800 border border-gray-700 rounded-md" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400">Period</label>
+                            <input type="text" name="education.period" value={data.education.period} onChange={handleInputChange} className="w-full mt-1 p-2 bg-gray-800 border border-gray-700 rounded-md" />
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                        <h2 className="text-2xl font-semibold">Projects</h2>
+                        <button onClick={() => handleAddItem('projects')} className="text-sm bg-green-600 px-3 py-1 rounded-md hover:bg-green-700">+</button>
+                    </div>
+                    <div className="space-y-6">
+                        {data.projects.map((project, index) => (
+                            <div key={project.id || `project-${index}`} className="bg-gray-800 p-4 rounded-lg space-y-3">
                                 <input type="text" placeholder="Project Title" value={project.title} onChange={(e) => handleArrayChange('projects', index, 'title', e.target.value)} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
                                 <input type="text" placeholder="Tech (comma separated)" value={project.tech.join(', ')} onChange={(e) => handleArrayChange('projects', index, 'tech', e.target.value)} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
-                                <div className='flex items-center gap-4'>{project.imgSrc && <div className="relative w-20 h-20 rounded-md overflow-hidden shrink-0"><Image src={project.imgSrc} alt="Preview" fill sizes="80px" className="object-cover" /></div>}<div><label htmlFor={`upload-project-${index}`} className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">{uploading?.type === 'project' && uploading.index === index ? 'Uploading...' : 'Upload Image'}</label><input id={`upload-project-${index}`} type="file" onChange={(e) => handleFileUpload(e, 'project', index)} className="hidden" disabled={uploading?.type === 'project' && uploading.index === index} />{project.imgSrc && <p className="text-xs text-gray-400 mt-1 truncate w-40" title={project.imgSrc}>{project.imgSrc}</p>}</div></div>
+                                <div className='flex items-center gap-4'>
+                                    {project.imgSrc && <Image src={project.imgSrc} alt="Preview" width={80} height={80} className="object-cover rounded-md bg-gray-700" />}
+                                    <div>
+                                        <label htmlFor={`upload-project-${index}`} className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                                            {readingFile?.type === 'projects' && readingFile.index === index ? 'Reading...' : 'Pilih Gambar'}
+                                        </label>
+                                        <input id={`upload-project-${index}`} type="file" accept="image/*" onChange={(e) => handleFileRead(e, 'projects', index)} className="hidden" disabled={readingFile?.type === 'projects' && readingFile.index === index} />
+                                    </div>
+                                </div>
+                                <button onClick={() => handleRemoveItem('projects', index)} className="text-red-500 hover:text-red-400 font-bold ml-auto block">&times; Hapus Proyek</button>
                             </div>
-                            <button onClick={() => handleRemoveItem('projects', index)} className="text-red-500 hover:text-red-400 font-bold text-xl p-2 md:p-0 shrink-0">&times;</button>
-                        </div>))}
+                        ))}
                     </div>
                 </div>
+
                 <div>
-                    <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2"><h2 className="text-2xl font-semibold">Tools & Others</h2><button onClick={() => handleAddItem('tools')} className="text-sm bg-green-600 px-3 py-1 rounded-md hover:bg-green-700">+</button></div>
-                    <div className="space-y-4">{data.tools.map((tool, index) => (
-                        // PERBAIKAN: Gunakan ID unik sebagai key
-                        <div key={tool.id || `tool-${index}`} className="bg-gray-800 p-4 rounded-lg flex gap-4 items-center">
-                            <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0 bg-gray-700">{tool.icon && <Image src={tool.icon} alt="Icon" fill sizes="48px" className="object-contain" />}</div>
-                            <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" placeholder="Tool Name" value={tool.name} onChange={(e) => handleArrayChange('tools', index, 'name', e.target.value)} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
-                                <div><label htmlFor={`upload-tool-${index}`} className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">{uploading?.type === 'tool' && uploading.index === index ? 'Uploading...' : 'Upload Icon'}</label><input id={`upload-tool-${index}`} type="file" onChange={(e) => handleFileUpload(e, 'tool', index)} className="hidden" disabled={uploading?.type === 'tool' && uploading.index === index} />{tool.icon && <p className="text-xs text-gray-400 mt-1 truncate w-40" title={tool.icon}>{tool.icon}</p>}</div>
-                            </div>
-                            <button onClick={() => handleRemoveItem('tools', index)} className="text-red-500 hover:text-red-400 font-bold text-xl p-2 shrink-0">&times;</button>
-                        </div>))}
+                    <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                        <h2 className="text-2xl font-semibold">Tools & Others</h2>
+                        <button onClick={() => handleAddItem('tools')} className="text-sm bg-green-600 px-3 py-1 rounded-md hover:bg-green-700">+</button>
                     </div>
+                    <div className="space-y-4">
+                        {data.tools.map((tool, index) => (
+                            <div key={tool.id || `tool-${index}`} className="bg-gray-800 p-4 rounded-lg flex gap-4 items-center">
+                                {tool.icon && <Image src={tool.icon} alt="Icon" width={48} height={48} className="object-contain bg-gray-700 rounded-md" />}
+                                <div className="flex-grow">
+                                    <input type="text" placeholder="Tool Name" value={tool.name} onChange={(e) => handleArrayChange('tools', index, 'name', e.target.value)} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
+                                </div>
+                                <div>
+                                    <label htmlFor={`upload-tool-${index}`} className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                                        {readingFile?.type === 'tools' && readingFile.index === index ? 'Reading...' : 'Pilih Ikon'}
+                                    </label>
+                                    <input id={`upload-tool-${index}`} type="file" accept="image/*" onChange={(e) => handleFileRead(e, 'tools', index)} className="hidden" disabled={readingFile?.type === 'tools' && readingFile.index === index} />
+                                </div>
+                                <button onClick={() => handleRemoveItem('tools', index)} className="text-red-500 hover:text-red-400 font-bold text-xl p-2 shrink-0">&times;</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mt-12 text-right border-t border-gray-700 pt-6">
+                    <button onClick={handleSave} disabled={saving || loading || readingFile !== null} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
+                        {saving ? 'Menyimpan...' : 'Simpan Semua Perubahan'}
+                    </button>
                 </div>
             </div>
-            <div className="mt-12 text-right border-t border-gray-700 pt-6">{message && <p className={`text-sm mb-4 inline-block mr-4 ${message.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{message}</p>}{error && <p className="text-sm text-red-400 mb-4">{error}</p>}<button onClick={handleSave} disabled={saving || loading} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">{saving ? 'Menyimpan...' : 'Simpan Semua Perubahan'}</button></div>
         </div>
     );
 }

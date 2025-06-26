@@ -1,7 +1,10 @@
+// lib/db.ts
+
 import mysql from "mysql2/promise";
 
 // Membuat koneksi pool ke database.
 // Pool lebih efisien daripada membuat koneksi baru setiap kali ada query.
+// Konfigurasi diambil dari environment variables yang ada di .env.local
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
