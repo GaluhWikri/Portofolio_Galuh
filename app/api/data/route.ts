@@ -61,9 +61,19 @@ export async function POST(request: Request) {
         
         await connection.beginTransaction();
 
-        // 1. Update settings (Tidak berubah)
+        // 1. Update settings (DIPERBARUI)
         await connection.query('UPDATE portfolio_settings SET setting_value = ? WHERE setting_key = ?', [data.aboutMe, 'aboutMe']);
-        // ... query lain untuk education ...
+        
+        // =================================================================
+        // PERBAIKAN: Menambahkan query untuk menyimpan data Education
+        // =================================================================
+        await connection.query('UPDATE portfolio_settings SET setting_value = ? WHERE setting_key = ?', [data.education.university, 'education_university']);
+        await connection.query('UPDATE portfolio_settings SET setting_value = ? WHERE setting_key = ?', [data.education.major, 'education_major']);
+        await connection.query('UPDATE portfolio_settings SET setting_value = ? WHERE setting_key = ?', [data.education.period, 'education_period']);
+        // =================================================================
+        // AKHIR DARI PERBAIKAN
+        // =================================================================
+
 
         // 2. Logika CRUD untuk Tools (Tidak berubah)
         const [existingTools]: any = await connection.query('SELECT id FROM tools');
