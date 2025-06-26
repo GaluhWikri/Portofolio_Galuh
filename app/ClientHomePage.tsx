@@ -3,12 +3,14 @@
 'use client';
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+// --- PERBAIKAN: Mengimpor 'Variants' dari framer-motion ---
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import Navbar from "./components/Navbar/navbar";
 import RotatingText from "./components/RotatingText/RotatingText";
 import dynamic from 'next/dynamic';
 import Lanyard from "./components/Lanyard/Lanyard";
 import Image from "next/image";
+
 
 // Tipe data untuk sebuah proyek
 interface Project {
@@ -21,24 +23,66 @@ interface Project {
 // Dynamic import untuk komponen yang hanya berjalan di client-side untuk optimasi
 const TextPressure = dynamic(() => import('./components/TextPressure/TextPressure'), { ssr: false });
 
-// Konfigurasi animasi untuk Framer Motion
-const sectionAnimation = { hidden: { opacity: 0, y: 30 }, visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" } }) };
-const sentenceAnimation = { hidden: { opacity: 1 }, visible: { opacity: 1, transition: { staggerChildren: 0.04 } } };
-const wordAnimation = { hidden: { y: '100%' }, visible: { y: '0%', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } };
+// --- PERBAIKAN: Menambahkan tipe 'Variants' pada setiap objek animasi ---
+const sectionAnimation: Variants = { 
+    hidden: { opacity: 0, y: 30 }, 
+    visible: (i = 0) => ({ 
+        opacity: 1, 
+        y: 0, 
+        transition: { 
+            delay: i * 0.1, 
+            duration: 0.6, 
+            ease: "easeOut" 
+        } 
+    }) 
+};
+
+const sentenceAnimation: Variants = { 
+    hidden: { opacity: 1 }, 
+    visible: { 
+        opacity: 1, 
+        transition: { 
+            staggerChildren: 0.04 
+        } 
+    } 
+};
+
+const wordAnimation: Variants = { 
+    hidden: { y: '100%' }, 
+    visible: { 
+        y: '0%', 
+        transition: { 
+            duration: 0.5, 
+            ease: [0.22, 1, 0.36, 1] 
+        } 
+    } 
+};
 
 // Komponen untuk kartu proyek
 const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: string[], imgSrc: string | null, onClick: () => void }) => {
-    const cardVariants = { initial: { opacity: 0, y: 20 }, inView: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
-    const overlayVariants = { hover: { opacity: 1 }, initial: { opacity: 0 } };
-    const textVariants = { hover: { y: 0, opacity: 1 }, initial: { y: 10, opacity: 0 } };
+    // --- PERBAIKAN: Menambahkan tipe 'Variants' pada setiap objek animasi ---
+    const cardVariants: Variants = { 
+        initial: { opacity: 0, y: 20 }, 
+        inView: { opacity: 1, y: 0, transition: { duration: 0.5 } } 
+    };
+    const overlayVariants: Variants = { 
+        hover: { opacity: 1 }, 
+        initial: { opacity: 0 } 
+    };
+    const textVariants: Variants = { 
+        hover: { y: 0, opacity: 1 }, 
+        initial: { y: 10, opacity: 0 } 
+    };
 
     return (
         <motion.div
             className="relative rounded-lg overflow-hidden group h-80 shadow-lg cursor-pointer"
             variants={cardVariants}
             onClick={onClick}
+            initial="initial"
+            whileInView="inView"
+            viewport={{ once: true, amount: 0.3 }}
         >
-            {/* Mengembalikan ke object-cover dan object-top untuk preview */}
             {imgSrc && <Image src={imgSrc} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="rounded-lg object-cover object-top transition-transform duration-500 ease-in-out group-hover:scale-110" />}
             <motion.div className="absolute inset-0 bg-black bg-opacity-60 rounded-lg" variants={overlayVariants} initial="initial" whileHover="hover" transition={{ duration: 0.3 }}>
                 <div className="p-6 h-full flex flex-col justify-end">
@@ -109,7 +153,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                             <a href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-white hover:text-gray-400 transition-colors"><svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg></a>
                         </div>
                     </motion.div>
-                    {/* ===== KODE YANG DIPERBAIKI ===== */}
+                    
                     <motion.div variants={sectionAnimation} custom={1}>
                         <div className="bg-white text-black rounded-2xl p-6 flex flex-col items-center">
                             <h3 className="text-3xl font-bold mb-6 text-center">Tools & Others</h3>
@@ -126,7 +170,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                             </div>
                         </div>
                     </motion.div>
-                    {/* ===== AKHIR KODE YANG DIPERBAIKI ===== */}
+
                 </motion.section>
 
                 <motion.section id="project" className="py-24 max-w-5xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
