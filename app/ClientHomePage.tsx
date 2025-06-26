@@ -45,12 +45,8 @@ export default function ClientHomePage({ data }: { data: any }) {
             <main className="px-4 md:px-8">
                 {/* Hero Section */}
                 <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
-                    <div className="absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}>
-                        <Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} />
-                    </div>
-                    <div className="w-full max-w-5xl h-56">
-                        <TextPressure text="PORTOFOLIO" />
-                    </div>
+                    <div className="absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}><Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} /></div>
+                    <div className="w-full max-w-5xl h-56"><TextPressure text="PORTOFOLIO" /></div>
                 </section>
 
                 {/* About Section */}
@@ -59,15 +55,9 @@ export default function ClientHomePage({ data }: { data: any }) {
                         <div>
                             <h2 className="text-4xl font-bold mb-4">About Me</h2>
                             <motion.p className="text-gray-400 font-sans leading-relaxed" variants={sentenceAnimation} initial="hidden" whileInView="visible" viewport={{ once: false, amount: 0.5 }}>
-                                {aboutMe.split(" ").map((word: string, index: number) => (
-                                    <span key={word + "-" + index} className="inline-block overflow-hidden pb-1">
-                                        <motion.span variants={wordAnimation} className="inline-block">{word}{"\u00A0"}</motion.span>
-                                    </span>
-                                ))}
+                                {aboutMe && aboutMe.split(" ").map((word: string, index: number) => (<span key={word + "-" + index} className="inline-block overflow-hidden pb-1"><motion.span variants={wordAnimation} className="inline-block">{word}{"\u00A0"}</motion.span></span>))}
                             </motion.p>
-                            <motion.button onClick={() => setIsCvVisible(true)} className="mt-6 px-6 py-2 border border-gray-500 text-white font-semibold rounded-lg transition-all hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-white" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                Lihat CV
-                            </motion.button>
+                            <motion.button onClick={() => setIsCvVisible(true)} className="mt-6 px-6 py-2 border border-gray-500 text-white font-semibold rounded-lg transition-all hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-white" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Lihat CV</motion.button>
                         </div>
                         <div>
                             <h2 className="text-4xl font-bold mb-4">Education</h2>
@@ -89,58 +79,22 @@ export default function ClientHomePage({ data }: { data: any }) {
                         <div className="bg-white text-black h-full min-h-[300px] rounded-2xl p-6 flex flex-col items-center">
                             <h3 className="text-3xl font-bold mb-6 text-center">Tools & Others</h3>
                             <div className="grid grid-cols-3 gap-y-4 gap-x-2 w-full place-items-center">
-                                {tools.map((tool: any) => (
-                                    <div key={tool.id} className="flex items-center justify-center p-2 rounded-lg transition-transform hover:scale-110" title={tool.name}>
-                                        <div className="relative w-12 h-12">
-                                            <Image src={tool.icon} alt={tool.name} fill sizes="48px" className="object-contain" />
-                                        </div>
-                                    </div>
-                                ))}
+                                {tools.map((tool: any) => (<div key={tool.id} className="flex items-center justify-center p-2 rounded-lg transition-transform hover:scale-110" title={tool.name}><div className="relative w-12 h-12"><Image src={tool.icon} alt={tool.name} fill sizes="48px" className="object-contain" /></div></div>))}
                             </div>
                         </div>
                     </motion.div>
                 </motion.section>
-
-                {/* Project Section */}
                 <motion.section id="project" className="py-24 max-w-5xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
-                    <motion.h2 className="text-5xl font-bold text-center mb-12" variants={sectionAnimation}>
-                        <RotatingText texts={["PROJECTS"]} auto={false} staggerDuration={0.08} />
-                    </motion.h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {projects.map((project: any) => (
-                            <ProjectCard key={project.id} title={project.title} tech={project.tech} imgSrc={project.imgSrc} />
-                        ))}
-                    </div>
+                    <motion.h2 className="text-5xl font-bold text-center mb-12" variants={sectionAnimation}><RotatingText texts={["PROJECTS"]} auto={false} staggerDuration={0.08} /></motion.h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">{projects.map((project: any) => (<ProjectCard key={project.id} title={project.title} tech={project.tech} imgSrc={project.imgSrc} />))}</div>
                 </motion.section>
-
-                {/* Contact Section */}
                 <motion.section id="contact" className="py-24 text-center max-w-3xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
-                    <motion.h2 className="text-5xl font-bold mb-6" variants={sectionAnimation}>
-                        <RotatingText texts={["CONTACT"]} auto={false} staggerDuration={0.08} />
-                    </motion.h2>
-                    <motion.p className="text-xl text-gray-400 mb-8 font-sans" variants={sectionAnimation} custom={1}>
-                        <RotatingText texts={["Tertarik untuk berkolaborasi? Hubungi saya."]} auto={false} staggerDuration={0.02} splitBy="words" />
-                    </motion.p>
-                    <motion.div variants={sectionAnimation} custom={2}>
-                        <a href="mailto:emailanda@example.com" className="inline-block border border-gray-500 text-white font-bold px-10 py-4 rounded-md transition-all hover:bg-white hover:text-black">
-                            <RotatingText texts={["Say Hello"]} auto={false} />
-                        </a>
-                    </motion.div>
+                    <motion.h2 className="text-5xl font-bold mb-6" variants={sectionAnimation}><RotatingText texts={["CONTACT"]} auto={false} staggerDuration={0.08} /></motion.h2>
+                    <motion.p className="text-xl text-gray-400 mb-8 font-sans" variants={sectionAnimation} custom={1}><RotatingText texts={["Tertarik untuk berkolaborasi? Hubungi saya."]} auto={false} staggerDuration={0.02} splitBy="words" /></motion.p>
+                    <motion.div variants={sectionAnimation} custom={2}><a href="mailto:emailanda@example.com" className="inline-block border border-gray-500 text-white font-bold px-10 py-4 rounded-md transition-all hover:bg-white hover:text-black"><RotatingText texts={["Say Hello"]} auto={false} /></a></motion.div>
                 </motion.section>
             </main>
-            
-            <AnimatePresence>
-                {isCvVisible && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center" onClick={() => setIsCvVisible(false)}>
-                        <motion.div initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 50 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="relative w-[90vw] h-[90vh] bg-gray-900 rounded-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                            <object data={cvPath} type="application/pdf" className="w-full h-full">
-                                <p className="text-white text-center p-4">Browser Anda tidak dapat menampilkan PDF. Silakan unduh CV <a href={cvPath} download className="text-blue-400 hover:underline"> di sini</a>.</p>
-                            </object>
-                            <button onClick={() => setIsCvVisible(false)} className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center text-2xl hover:bg-opacity-75 transition-all" aria-label="Tutup">&times;</button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <AnimatePresence>{isCvVisible && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center" onClick={() => setIsCvVisible(false)}><motion.div initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 50 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="relative w-[90vw] h-[90vh] bg-gray-900 rounded-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}><object data={cvPath} type="application/pdf" className="w-full h-full"><p className="text-white text-center p-4">Browser Anda tidak dapat menampilkan PDF. Silakan unduh CV <a href={cvPath} download className="text-blue-400 hover:underline"> di sini</a>.</p></object><button onClick={() => setIsCvVisible(false)} className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center text-2xl hover:bg-opacity-75 transition-all" aria-label="Tutup">&times;</button></motion.div></motion.div>)}</AnimatePresence>
         </>
     );
 }
