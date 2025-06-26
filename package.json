@@ -12,6 +12,7 @@
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "@react-three/rapier": "^1.5.0",
+    "@supabase/supabase-js": "^2.50.2",
     "framer-motion": "^12.18.1",
     "gsap": "^3.13.0",
     "meshline": "^3.3.1",
