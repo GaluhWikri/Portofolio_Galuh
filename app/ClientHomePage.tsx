@@ -145,7 +145,15 @@ export default function ClientHomePage({ data }: { data: any }) {
                 <motion.section id="contact" className="py-24 text-center max-w-3xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
                     <motion.h2 className="text-5xl font-bold mb-6" variants={sectionAnimation}><RotatingText texts={["CONTACT"]} auto={false} staggerDuration={0.08} /></motion.h2>
                     <motion.p className="text-xl text-gray-400 mb-8 font-sans" variants={sectionAnimation} custom={1}><RotatingText texts={["Tertarik untuk berkolaborasi? Hubungi saya."]} auto={false} staggerDuration={0.02} splitBy="words" /></motion.p>
-                    <motion.div variants={sectionAnimation} custom={2}><a href="mailto:galuhwikri05@gmail.com" className="inline-block border border-gray-500 text-white font-bold px-10 py-4 rounded-md transition-all hover:bg-white hover:text-black"><RotatingText texts={["Say Hello"]} auto={false} /></a></motion.div>
+                    <motion.div variants={sectionAnimation} custom={2}><a
+                        href="https://mail.google.com/mail/?view=cm&fs=1&to=galuhwikri05@gmail.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block border border-gray-500 text-white font-bold px-10 py-4 rounded-md transition-all hover:bg-white hover:text-black"
+                    >
+                        <RotatingText texts={["Say Hello"]} auto={false} />
+                    </a>
+                    </motion.div>
                 </motion.section>
             </main>
 
