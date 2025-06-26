@@ -2,30 +2,20 @@
 
 import { NextResponse } from 'next/server';
 import pool from '../../../lib/db';
+import fs from 'fs/promises';
+import path from 'path';
 
-// Helper function untuk mengubah Buffer ke Base64 string
-const bufferToBase64 = (buffer: Buffer | null) => {
-    if (!buffer) return null;
-    // Mendeteksi tipe mime dasar (ini bisa diperluas jika perlu)
-    let mimeType = 'image/jpeg'; // default
-    if (buffer.subarray(0, 4).toString('hex') === '89504e47') mimeType = 'image/png';
-    if (buffer.subarray(0, 2).toString('hex') === 'ffd8') mimeType = 'image/jpeg';
-    if (buffer.subarray(0, 4).toString('utf8') === 'RIFF' && buffer.subarray(8, 12).toString('utf8') === 'WEBP') mimeType = 'image/webp';
-    if (buffer.subarray(0, 4).toString('utf8').includes('SVG')) mimeType = 'image/svg+xml';
+// Pastikan direktori untuk upload ada
+const ensureDirectoryExistence = async (filePath: string) => {
+    const dirname = path.dirname(filePath);
+    try {
+        await fs.access(dirname);
+    } catch (e) {
+        await fs.mkdir(dirname, { recursive: true });
+    }
+};
 
-
-    return `data:${mimeType};base64,${buffer.toString('base64')}`;
-}
-
-// Helper function untuk mengubah Base64 string ke Buffer
-const base64ToBuffer = (base64: string | null) => {
-    if (!base64 || !base64.startsWith('data:')) return null;
-    // Menghapus prefix "data:image/png;base64,"
-    const data = base64.split(',')[1];
-    return Buffer.from(data, 'base64');
-}
-
-// Method GET: Mengambil data dan mengubah BLOB ke Base64
+// --- GET (Mengambil data) ---
 export async function GET() {
     let connection;
     try {
@@ -42,15 +32,14 @@ export async function GET() {
                 period: settingsRows.find((s:any) => s.setting_key === 'education_period')?.setting_value || '',
             },
             tools: toolsRows.map((t: any) => ({
-                id: t.id,
-                name: t.name,
-                icon: bufferToBase64(t.icon_path) // Konversi BLOB ke Base64
+                id: t.id, name: t.name, icon: t.icon_path
             })),
+            // Sekarang imgSrc langsung berisi path, tidak perlu konversi
             projects: projectsRows.map((p: any) => ({
                 id: p.id,
                 title: p.title,
                 tech: p.tech ? p.tech.split(',').map((tech: string) => tech.trim()) : [],
-                imgSrc: bufferToBase64(p.imgSrc) // Konversi BLOB ke Base64
+                imgSrc: p.imgSrc 
             })),
         };
         
@@ -63,7 +52,7 @@ export async function GET() {
     }
 }
 
-// Method POST: Menerima Base64 dan menyimpannya sebagai BLOB
+// --- POST (Menyimpan data) ---
 export async function POST(request: Request) {
     let connection;
     try {
@@ -72,11 +61,11 @@ export async function POST(request: Request) {
         
         await connection.beginTransaction();
 
-        // 1. Update settings
+        // 1. Update settings (Tidak berubah)
         await connection.query('UPDATE portfolio_settings SET setting_value = ? WHERE setting_key = ?', [data.aboutMe, 'aboutMe']);
-        // ... (query lain untuk education) ...
+        // ... query lain untuk education ...
 
-        // 2. Logika CRUD untuk Tools
+        // 2. Logika CRUD untuk Tools (Tidak berubah)
         const [existingTools]: any = await connection.query('SELECT id FROM tools');
         const incomingToolIds = data.tools.map((t: any) => t.id).filter(Boolean);
         const toolsToDelete = existingTools.map((t: any) => t.id).filter((id: number) => !incomingToolIds.includes(id));
@@ -84,33 +73,63 @@ export async function POST(request: Request) {
             await connection.query('DELETE FROM tools WHERE id IN (?)', [toolsToDelete]);
         }
         for (const tool of data.tools) {
-            const iconBuffer = base64ToBuffer(tool.icon); // Konversi Base64 ke Buffer
             if (tool.id) {
-                await connection.query('UPDATE tools SET name = ?, icon_path = ? WHERE id = ?', [tool.name, iconBuffer, tool.id]);
+                await connection.query('UPDATE tools SET name = ?, icon_path = ? WHERE id = ?', [tool.name, tool.icon, tool.id]);
             } else {
-                await connection.query('INSERT INTO tools (name, icon_path) VALUES (?, ?)', [tool.name, iconBuffer]);
+                await connection.query('INSERT INTO tools (name, icon_path) VALUES (?, ?)', [tool.name, tool.icon]);
             }
         }
 
-        // 3. Logika CRUD untuk Projects
+        // 3. Logika CRUD untuk Projects (DIPERBARUI)
         const [existingProjects]: any = await connection.query('SELECT id FROM projects');
         const incomingProjectIds = data.projects.map((p: any) => p.id).filter(Boolean);
         const projectsToDelete = existingProjects.map((p: any) => p.id).filter((id: number) => !incomingProjectIds.includes(id));
+        
         if (projectsToDelete.length > 0) {
+            // Hapus juga file gambar dari server jika proyek dihapus
+            const [projectsData]: any = await connection.query('SELECT imgSrc FROM projects WHERE id IN (?)', [projectsToDelete]);
+            for (const proj of projectsData) {
+                if (proj.imgSrc) {
+                    const oldPath = path.join(process.cwd(), 'public', proj.imgSrc);
+                    try {
+                        await fs.unlink(oldPath);
+                    } catch (err) {
+                        console.error("Gagal hapus file lama:", err);
+                    }
+                }
+            }
             await connection.query('DELETE FROM projects WHERE id IN (?)', [projectsToDelete]);
         }
+
         for (const project of data.projects) {
             const techString = project.tech.join(', ');
-            const imageBuffer = base64ToBuffer(project.imgSrc); // Konversi Base64 ke Buffer
+            let imagePath = project.imgSrc;
+
+            // Jika imgSrc adalah data base64 (file baru), simpan sebagai file
+            if (project.imgSrc && project.imgSrc.startsWith('data:image')) {
+                const base64Data = project.imgSrc.split(';base64,').pop();
+                if (base64Data) {
+                    const buffer = Buffer.from(base64Data, 'base64');
+                    const fileExtension = project.imgSrc.substring(project.imgSrc.indexOf('/') + 1, project.imgSrc.indexOf(';'));
+                    const filename = `${Date.now()}-${project.title.replace(/\s+/g, '-').toLowerCase()}.${fileExtension}`;
+                    const savePath = path.join(process.cwd(), 'public', 'uploads', 'projects', filename);
+                    
+                    await ensureDirectoryExistence(savePath);
+                    await fs.writeFile(savePath, buffer);
+                    
+                    imagePath = `/uploads/projects/${filename}`; // Simpan path ini ke DB
+                }
+            }
+
             if (project.id) {
-                await connection.query('UPDATE projects SET title = ?, tech = ?, imgSrc = ? WHERE id = ?', [project.title, techString, imageBuffer, project.id]);
+                await connection.query('UPDATE projects SET title = ?, tech = ?, imgSrc = ? WHERE id = ?', [project.title, techString, imagePath, project.id]);
             } else {
-                await connection.query('INSERT INTO projects (title, tech, imgSrc) VALUES (?, ?, ?)', [project.title, techString, imageBuffer]);
+                await connection.query('INSERT INTO projects (title, tech, imgSrc) VALUES (?, ?, ?)', [project.title, techString, imagePath]);
             }
         }
 
         await connection.commit();
-        return NextResponse.json({ message: 'Data berhasil disimpan ke database!' });
+        return NextResponse.json({ message: 'Data berhasil disimpan!' });
     } catch (error: any) {
         if (connection) await connection.rollback();
         console.error('API POST Error:', error);
