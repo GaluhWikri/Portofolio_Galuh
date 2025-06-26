@@ -12,15 +12,37 @@ export async function GET() {
   const iconsDirectory = path.join(process.cwd(), "public", "assets", "icon");
 
   try {
-    // Baca semua nama file di dalam direktori
+    // Baca semua nama item di dalam direktori
     const filenames = await fs.readdir(iconsDirectory);
 
-    // Filter untuk hanya menyertakan file gambar yang umum (opsional tapi bagus)
-    const imageFiles = filenames.filter((file) =>
-      /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(file)
+    // Filter lanjutan untuk memastikan setiap item adalah file gambar yang valid
+    const fileChecks = await Promise.all(
+      filenames.map(async (filename) => {
+        try {
+          const filePath = path.join(iconsDirectory, filename);
+          const stat = await fs.stat(filePath);
+          
+          // Cek apakah itu file (bukan direktori)
+          if (stat.isFile()) {
+            const isHiddenFile = /^\./.test(filename) || filename.toLowerCase() === 'thumbs.db';
+            const isImageFile = /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(filename);
+
+            if (isImageFile && !isHiddenFile) {
+              return filename; // Kembalikan nama file jika valid
+            }
+          }
+        } catch (err) {
+            console.error(`Could not stat file: ${filename}`, err);
+            return null;
+        }
+        return null; // Abaikan item jika itu direktori atau tidak valid
+      })
     );
 
-    // Kirim daftar nama file sebagai response JSON
+    // Hapus semua hasil null dari array
+    const imageFiles = fileChecks.filter((file): file is string => file !== null);
+
+    // Kirim daftar nama file yang sudah bersih sebagai response JSON
     return NextResponse.json({ icons: imageFiles });
   } catch (error) {
     console.error("Gagal membaca direktori ikon:", error);
