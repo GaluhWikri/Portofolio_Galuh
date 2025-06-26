@@ -110,8 +110,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                         </div>
                     </motion.div>
                     <motion.div variants={sectionAnimation} custom={1} className="h-full">
-                        {/* PERUBAHAN: Menghapus min-h-300px */}
-                        <div className="bg-white text-black h-full rounded-2xl p-6 flex flex-col items-center">
+                        <div className="bg-white text-black h-full min-h-[300px] rounded-2xl p-6 flex flex-col items-center">
                             <h3 className="text-3xl font-bold mb-6 text-center">Tools & Others</h3>
                             <div className="flex flex-wrap justify-center items-center gap-6 w-full">
                                 {tools.map((tool: any) => (
@@ -146,14 +145,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                 <motion.section id="contact" className="py-24 text-center max-w-3xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
                     <motion.h2 className="text-5xl font-bold mb-6" variants={sectionAnimation}><RotatingText texts={["CONTACT"]} auto={false} staggerDuration={0.08} /></motion.h2>
                     <motion.p className="text-xl text-gray-400 mb-8 font-sans" variants={sectionAnimation} custom={1}><RotatingText texts={["Tertarik untuk berkolaborasi? Hubungi saya."]} auto={false} staggerDuration={0.02} splitBy="words" /></motion.p>
-                    <motion.div variants={sectionAnimation} custom={2}><a
-                        href="https://mail.google.com/mail/?view=cm&fs=1&to=galuhwikri05@gmail.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block border border-gray-500 text-white font-bold px-10 py-4 rounded-md transition-all hover:bg-white hover:text-black"
-                    >
-                        <RotatingText texts={["Say Hello"]} auto={false} />
-                    </a></motion.div>
+                    <motion.div variants={sectionAnimation} custom={2}><a href="mailto:galuhwikri05@gmail.com" className="inline-block border border-gray-500 text-white font-bold px-10 py-4 rounded-md transition-all hover:bg-white hover:text-black"><RotatingText texts={["Say Hello"]} auto={false} /></a></motion.div>
                 </motion.section>
             </main>
 
@@ -169,51 +161,48 @@ export default function ClientHomePage({ data }: { data: any }) {
                 )}
             </AnimatePresence>
 
-            {/* Modal untuk menampilkan gambar proyek (Behance Style) */}
+            {/* PERUBAHAN DI SINI: Modal untuk menampilkan gambar proyek (Behance Style dengan box transparan) */}
             <AnimatePresence>
                 {selectedProject && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[60] bg-white/80 dark:bg-black/80 backdrop-blur-sm p-4"
+                        className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm p-4"
                         onClick={() => setSelectedProject(null)}
                     >
-                        <div className="w-full h-full overflow-y-auto hide-scrollbar">
+                        <div className="w-full h-full overflow-y-auto hide-scrollbar" onClick={(e) => e.stopPropagation()}>
                             <motion.div
                                 initial={{ y: 50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: 50, opacity: 0 }}
                                 transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-                                className="relative w-full max-w-6xl mx-auto my-12"
-                                onClick={(e) => e.stopPropagation()}
+                                className="relative w-full max-w-6xl mx-auto my-12 space-y-8"
                             >
-                                <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-6 md:p-12 space-y-8">
-                                    <div className="text-center text-black dark:text-white">
-                                        <h2 className="text-3xl md:text-5xl font-bold mb-3">{selectedProject.title}</h2>
-                                        <div className="flex flex-wrap justify-center gap-2">
-                                            {selectedProject.tech.map(t => (
-                                                <span key={t} className="text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 px-3 py-1 rounded-full">{t}</span>
-                                            ))}
-                                        </div>
+                                <div className="text-center text-white">
+                                    <h2 className="text-3xl md:text-5xl font-bold mb-3 drop-shadow-lg">{selectedProject.title}</h2>
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {selectedProject.tech.map(t => (
+                                            <span key={t} className="text-sm bg-black/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full">{t}</span>
+                                        ))}
                                     </div>
-                                    {selectedProject.imgSrc && (
-                                        <div className="relative w-full h-auto">
-                                            <Image
-                                                src={selectedProject.imgSrc}
-                                                alt={`Tampilan Proyek ${selectedProject.title}`}
-                                                width={1920}
-                                                height={1080}
-                                                className="object-contain w-full h-auto rounded-lg"
-                                            />
-                                        </div>
-                                    )}
                                 </div>
+                                {selectedProject.imgSrc && (
+                                    <div className="relative w-full h-auto">
+                                        <Image
+                                            src={selectedProject.imgSrc}
+                                            alt={`Tampilan Proyek ${selectedProject.title}`}
+                                            width={1920}
+                                            height={1080}
+                                            className="object-contain w-full h-auto rounded-lg shadow-2xl"
+                                        />
+                                    </div>
+                                )}
                             </motion.div>
                         </div>
                         <button
                             onClick={() => setSelectedProject(null)}
-                            className="fixed top-6 right-6 text-black dark:text-white bg-white/50 dark:bg-black/50 backdrop-blur-sm rounded-full w-10 h-10 flex items-center justify-center text-2xl hover:bg-opacity-75 transition-all"
+                            className="fixed top-6 right-6 text-white bg-black/50 backdrop-blur-sm rounded-full w-10 h-10 flex items-center justify-center text-2xl hover:bg-opacity-75 transition-all"
                             aria-label="Tutup"
                         >
                             &times;
