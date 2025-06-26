@@ -1,4 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+'use client';
+
+import { useEffect, useRef, useState, useCallback } from 'react';
+
+// Fungsi helper murni dipindahkan ke luar komponen agar tidak dibuat ulang pada setiap render.
+const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    return Math.sqrt(dx * dx + dy * dy);
+};
 
 interface TextPressureProps {
     text?: string;
@@ -48,12 +57,6 @@ const TextPressure: React.FC<TextPressureProps> = ({
 
     const chars = text.split('');
 
-    const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    };
-
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             cursorRef.current.x = e.clientX;
@@ -61,12 +64,14 @@ const TextPressure: React.FC<TextPressureProps> = ({
         };
         const handleTouchMove = (e: TouchEvent) => {
             const t = e.touches[0];
-            cursorRef.current.x = t.clientX;
-            cursorRef.current.y = t.clientY;
+            if (t) {
+                cursorRef.current.x = t.clientX;
+                cursorRef.current.y = t.clientY;
+            }
         };
 
         window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+        window.addEventListener('touchmove', handleTouchMove, { passive: true }); // Mengubah ke passive: true untuk performa
 
         if (containerRef.current) {
             const { left, top, width, height } = containerRef.current.getBoundingClientRect();
@@ -82,12 +87,15 @@ const TextPressure: React.FC<TextPressureProps> = ({
         };
     }, []);
 
-    const setSize = () => {
+    // --- PERBAIKAN: Membungkus setSize dengan useCallback untuk stabilitas referensi ---
+    // dan menambahkan semua dependensi yang benar (text, minFontSize, scale).
+    const setSize = useCallback(() => {
         if (!containerRef.current || !titleRef.current) return;
 
         const { width: containerW, height: containerH } = containerRef.current.getBoundingClientRect();
 
-        let newFontSize = containerW / (chars.length / 2);
+        const currentChars = text.split('');
+        let newFontSize = containerW / (currentChars.length / 2);
         newFontSize = Math.max(newFontSize, minFontSize);
 
         setFontSize(newFontSize);
@@ -104,13 +112,14 @@ const TextPressure: React.FC<TextPressureProps> = ({
                 setLineHeight(yRatio);
             }
         });
-    };
+    }, [text, minFontSize, scale]);
 
+    // --- PERBAIKAN: Menggunakan fungsi setSize yang stabil sebagai dependensi ---
     useEffect(() => {
         setSize();
         window.addEventListener('resize', setSize);
         return () => window.removeEventListener('resize', setSize);
-    }, [scale, text]);
+    }, [setSize]);
 
     useEffect(() => {
         let rafId: number;
@@ -134,6 +143,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
                     const d = dist(mouseRef.current, charCenter);
 
                     const getAttr = (distance: number, minVal: number, maxVal: number) => {
+                        if (maxDist === 0) return minVal; // Menghindari pembagian dengan nol
                         const val = maxVal - Math.abs((maxVal * distance) / maxDist);
                         return Math.max(minVal, val + minVal);
                     };
@@ -153,7 +163,8 @@ const TextPressure: React.FC<TextPressureProps> = ({
 
         animate();
         return () => cancelAnimationFrame(rafId);
-    }, [width, weight, italic, alpha, chars.length]);
+        // --- PERBAIKAN: Mengganti chars.length dengan text untuk dependensi yang lebih akurat ---
+    }, [width, weight, italic, alpha, text]);
 
     return (
         <div

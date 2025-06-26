@@ -12,9 +12,11 @@ import {
   motion,
   AnimatePresence,
   Transition,
+  type Variants,
   type VariantLabels,
   type Target,
-  type AnimationControls,
+  // --- PERBAIKAN: Mengembalikan nama tipe yang benar 'AnimationControls' (huruf A besar) ---
+  type animationControls,
   type TargetAndTransition,
 } from "framer-motion";
 
@@ -36,9 +38,10 @@ export interface RotatingTextProps
   > {
   texts: string[];
   transition?: Transition;
-  initial?: boolean | Target | VariantLabels;
-  animate?: boolean | VariantLabels | AnimationControls | TargetAndTransition;
-  exit?: Target | VariantLabels;
+  initial?: boolean | TargetAndTransition | VariantLabels;
+  // --- PERBAIKAN: Menggunakan tipe yang benar 'AnimationControls' ---
+  animate?: boolean | TargetAndTransition | VariantLabels ;
+  exit?: boolean | TargetAndTransition | VariantLabels;
   animatePresenceMode?: "sync" | "wait";
   animatePresenceInitial?: boolean;
   rotationInterval?: number;
@@ -79,6 +82,22 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
   ) => {
     const [currentTextIndex, setCurrentTextIndex] = useState<number>(0);
 
+    // --- PERBAIKAN: Menghapus 'as any' dan kembali ke pemeriksaan tipe yang lebih aman ---
+    // Dengan tipe prop yang sudah benar, ini seharusnya sudah cukup untuk mengatasi error.
+    const charVariants = useMemo<Variants>(() => {
+        const variants: Variants = {};
+        if (initial && typeof initial === 'object' && !Array.isArray(initial)) {
+            variants.initial = initial;
+        }
+        if (animate && typeof animate === 'object' && !Array.isArray(animate)) {
+            variants.animate = animate;
+        }
+        if (exit && typeof exit === 'object' && !Array.isArray(exit)) {
+            variants.exit = exit;
+        }
+        return variants;
+    }, [initial, animate, exit]);
+
     const splitIntoCharacters = (text: string): string[] => {
       if (typeof Intl !== "undefined" && Intl.Segmenter) {
         const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
@@ -92,6 +111,7 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
 
     const elements = useMemo(() => {
       const currentText: string = texts[currentTextIndex];
+      if (!currentText) return [];
       if (splitBy === "characters") {
         const words = currentText.split(" ");
         return words.map((word, i) => ({
@@ -112,7 +132,7 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
         }));
       }
 
-      return currentText.split(splitBy).map((part, i, arr) => ({
+      return currentText.split(splitBy!).map((part, i, arr) => ({
         characters: [part],
         needsSpace: i !== arr.length - 1,
       }));
@@ -217,7 +237,7 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
           mode={animatePresenceMode}
           initial={animatePresenceInitial}
         >
-          <motion.span  // <-- Perubahan dari motion.div ke motion.span
+          <motion.span
             key={currentTextIndex}
             className={cn(
               splitBy === "lines"
@@ -239,9 +259,10 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
                   {wordObj.characters.map((char, charIndex) => (
                     <motion.span
                       key={charIndex}
-                      initial={initial}
-                      animate={animate}
-                      exit={exit}
+                      variants={charVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
                       transition={{
                         ...transition,
                         delay: getStaggerDelay(

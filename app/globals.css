@@ -17,4 +17,4 @@ body {
   background: var(--background);
   /* Variabel font akan diatur di layout.tsx */
   font-family: var(--font-primary), sans-serif;
-}  
+}
