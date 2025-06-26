@@ -10,7 +10,8 @@ export default function ProfileCard() {
             initial={{ opacity: 0, scale: 0.8, rotate: 10 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-            whileHover={{ scale: 1.05, shadow: "0 0 25px #FBBF24" }}
+            // --- PERBAIKAN: Mengganti 'shadow' menjadi 'boxShadow' ---
+            whileHover={{ scale: 1.05, boxShadow: "0px 0px 25px rgba(251, 191, 36, 0.8)" }}
         >
             {/* Ganti dengan gambar profil Anda di folder /public */}
             <div className="w-full h-48 border-2 border-yellow-600 bg-gray-800">
