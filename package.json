@@ -15,6 +15,7 @@
     "framer-motion": "^12.18.1",
     "gsap": "^3.13.0",
     "meshline": "^3.3.1",
+    "mysql2": "^3.14.1",
     "next": "14.2.30",
     "react": "^18",
     "react-bits": "^1.0.5",

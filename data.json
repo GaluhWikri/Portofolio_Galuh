@@ -1,0 +1,18 @@
+{
+  "aboutMe": "Ini adalah teks tentang saya yang bisa diubah dari dashboard.",
+  "education": {
+    "university": "Universitas Pasundan",
+    "major": "Informatic Engineering",
+    "period": "October 2022 - Present"
+  },
+  "tools": [
+    { "name": "Figma", "icon": "/assets/icon/icons8-figma-48.png" }
+  ],
+  "projects": [
+    {
+      "title": "Proyek Contoh",
+      "tech": ["React", "Next.js"],
+      "imgSrc": "/assets/image/project-a.jpg"
+    }
+  ]
+}
