@@ -8,12 +8,10 @@ import Navbar from "./components/Navbar/navbar";
 import RotatingText from "./components/RotatingText/RotatingText";
 import Image from "next/image";
 
-// --- PERBAIKAN UTAMA: Menggunakan komponen ClientOnly sebagai pembungkus ---
 import ClientOnly from "./components/ClientOnly";
 import Lanyard from "./components/Lanyard/Lanyard";
 import TextPressure from "./components/TextPressure/TextPressure";
 
-// Tipe Data (Tidak ada perubahan)
 interface Project {
     id: number;
     title: string;
@@ -21,7 +19,6 @@ interface Project {
     imgSrc: string | null;
 }
 
-// Varian Animasi (Tidak ada perubahan)
 const sectionAnimation: Variants = { 
     hidden: { opacity: 0, y: 30 }, 
     visible: (i = 0) => ({ 
@@ -41,7 +38,7 @@ const wordAnimation: Variants = {
     visible: { y: '0%', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } 
 };
 
-// Komponen Kartu Proyek (Tidak ada perubahan)
+// Komponen Kartu Proyek (ProjectCard)
 const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: string[], imgSrc: string | null, onClick: () => void }) => {
     const cardVariants: Variants = { 
         initial: { opacity: 0, y: 20 }, 
@@ -59,7 +56,11 @@ const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: st
             whileInView="inView"
             viewport={{ once: false, amount: 0.3 }}
         >
-            {imgSrc && <Image src={imgSrc} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="rounded-lg object-cover object-top transition-transform duration-500 ease-in-out group-hover:scale-110" />}
+            {/* ================================================================== */}
+            {/* PERBAIKAN ADA DI BARIS INI                     */}
+            {/* ================================================================== */}
+            {imgSrc && <Image src={imgSrc} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="rounded-lg object-cover object-top transition-transform duration-500 ease-in-out group-hover:scale-110" unoptimized />}
+            
             <motion.div className="absolute inset-0 bg-black bg-opacity-60 rounded-lg" variants={overlayVariants} initial="initial" whileHover="hover" transition={{ duration: 0.3 }}>
                 <div className="p-6 h-full flex flex-col justify-end">
                     <motion.h3 className="text-2xl font-bold text-white mb-2" variants={textVariants} transition={{ delay: 0.1 }}>{title}</motion.h3>
@@ -93,7 +94,6 @@ export default function ClientHomePage({ data }: { data: any }) {
             <Navbar />
             <main className="px-4 md:px-8">
                 <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
-                    {/* --- DIBUNGKUS DENGAN ClientOnly --- */}
                     <ClientOnly>
                         <div className="absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}>
                             <Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} />
@@ -146,7 +146,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                             <h3 className="text-3xl font-bold mb-6 text-center">Tools & Others</h3>
                             <div className="flex flex-wrap justify-center items-center gap-6 w-full">
                                 {tools.map((tool: any) => (
-                                    <div key={tool.id} className="transition-transform hover:scale-110" title={tool.name}>
+                                    <div key={tool.name} className="transition-transform hover:scale-110" title={tool.name}>
                                         {tool.icon && (
                                             <div className="relative w-14 h-14">
                                                 <Image src={tool.icon} alt={tool.name} fill sizes="56px" className="object-contain" />
@@ -164,7 +164,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {projects.map((project: Project) => (
                             <ProjectCard
-                                key={project.id}
+                                key={project.title} // Menggunakan title sebagai key jika id tidak ada
                                 title={project.title}
                                 tech={project.tech}
                                 imgSrc={project.imgSrc}
@@ -227,12 +227,16 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 </div>
                                 {selectedProject.imgSrc && (
                                     <div className="relative w-full h-auto">
+                                        {/* ================================================================== */}
+                                        {/* PERBAIKAN ADA DI BARIS INI                     */}
+                                        {/* ================================================================== */}
                                         <Image
                                             src={selectedProject.imgSrc}
                                             alt={`Tampilan Proyek ${selectedProject.title}`}
                                             width={1920}
                                             height={1080}
                                             className="object-contain w-full h-auto rounded-lg shadow-2xl"
+                                            unoptimized
                                         />
                                     </div>
                                 )}
