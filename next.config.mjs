@@ -4,7 +4,7 @@ const nextConfig = {
     // Opsi ini penting untuk memperbolehkan Next.js memproses SVG
     // melalui komponen <Image>.
     dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
   // Konfigurasi webpack untuk mengubah file .svg menjadi komponen React
