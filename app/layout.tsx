@@ -1,16 +1,17 @@
+// app/layout.tsx
+
 import type { Metadata } from "next";
-import { Inter_Tight } from "next/font/google"; // <-- Mengimpor Inter Tight
+import { Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-// Konfigurasi untuk font Inter Tight
 const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-primary", // Tetap menggunakan variabel CSS yang sama
+  variable: "--font-primary", 
 });
 
 export const metadata: Metadata = {
   title: "Portfolio",
-  description: "Modern Portfolio", // Deskripsi dapat diperbarui
+  description: "Modern Portfolio",
 };
 
 export default function RootLayout({
@@ -19,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/* Menerapkan variabel font baru ke body */}
+    // --- PERBAIKAN WAJIB: Menambahkan suppressHydrationWarning pada <html> ---
+    <html lang="en" suppressHydrationWarning>
       <body className={`${interTight.variable} font-sans antialiased`}>
         {children}
       </body>

@@ -6,14 +6,14 @@ import React, { useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import Navbar from "./components/Navbar/navbar";
 import RotatingText from "./components/RotatingText/RotatingText";
-import dynamic from 'next/dynamic';
-import Lanyard from "./components/Lanyard/Lanyard";
 import Image from "next/image";
 
-// --- Dynamic Import ---
-const TextPressure = dynamic(() => import('./components/TextPressure/TextPressure'), { ssr: false });
+// --- PERBAIKAN UTAMA: Menggunakan komponen ClientOnly sebagai pembungkus ---
+import ClientOnly from "./components/ClientOnly";
+import Lanyard from "./components/Lanyard/Lanyard";
+import TextPressure from "./components/TextPressure/TextPressure";
 
-// --- Tipe Data ---
+// Tipe Data (Tidak ada perubahan)
 interface Project {
     id: number;
     title: string;
@@ -21,42 +21,27 @@ interface Project {
     imgSrc: string | null;
 }
 
-// --- Varian Animasi (SEMUA VARIAN ASLI ANDA DIPERTAHANKAN) ---
+// Varian Animasi (Tidak ada perubahan)
 const sectionAnimation: Variants = { 
     hidden: { opacity: 0, y: 30 }, 
     visible: (i = 0) => ({ 
         opacity: 1, 
         y: 0, 
-        transition: { 
-            delay: i * 0.1, 
-            duration: 0.6, 
-            ease: "easeOut" 
-        } 
+        transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" } 
     }) 
 };
 
 const sentenceAnimation: Variants = { 
     hidden: { opacity: 1 }, 
-    visible: { 
-        opacity: 1, 
-        transition: { 
-            staggerChildren: 0.04 
-        } 
-    } 
+    visible: { opacity: 1, transition: { staggerChildren: 0.04 } } 
 };
 
 const wordAnimation: Variants = { 
     hidden: { y: '100%' }, 
-    visible: { 
-        y: '0%', 
-        transition: { 
-            duration: 0.5, 
-            ease: [0.22, 1, 0.36, 1] 
-        } 
-    } 
+    visible: { y: '0%', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } 
 };
 
-// Komponen Kartu Proyek (TETAP SAMA)
+// Komponen Kartu Proyek (Tidak ada perubahan)
 const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: string[], imgSrc: string | null, onClick: () => void }) => {
     const cardVariants: Variants = { 
         initial: { opacity: 0, y: 20 }, 
@@ -72,7 +57,6 @@ const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: st
             onClick={onClick}
             initial="initial"
             whileInView="inView"
-            // --- PERBAIKAN: Animasi berjalan setiap kali terlihat ---
             viewport={{ once: false, amount: 0.3 }}
         >
             {imgSrc && <Image src={imgSrc} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="rounded-lg object-cover object-top transition-transform duration-500 ease-in-out group-hover:scale-110" />}
@@ -91,8 +75,8 @@ const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: st
 export default function ClientHomePage({ data }: { data: any }) {
     const [isCvVisible, setIsCvVisible] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const cvPath = "/assets/cv/Galuh Wikri Ramadhan.pdf"; //
-    const { aboutMe, education, tools, projects } = data; //
+    const cvPath = "/assets/cv/Galuh Wikri Ramadhan.pdf";
+    const { aboutMe, education, tools, projects } = data;
 
     const handleProjectClick = (project: Project) => {
         if (project.imgSrc) {
@@ -109,8 +93,15 @@ export default function ClientHomePage({ data }: { data: any }) {
             <Navbar />
             <main className="px-4 md:px-8">
                 <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
-                    <div className="absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}><Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} /></div>
-                    <div className="w-full max-w-5xl h-56"><TextPressure text="PORTOFOLIO" /></div>
+                    {/* --- DIBUNGKUS DENGAN ClientOnly --- */}
+                    <ClientOnly>
+                        <div className="absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}>
+                            <Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} />
+                        </div>
+                        <div className="w-full max-w-5xl h-56">
+                            <TextPressure text="PORTOFOLIO" />
+                        </div>
+                    </ClientOnly>
                 </section>
 
                 <motion.section 
@@ -118,20 +109,17 @@ export default function ClientHomePage({ data }: { data: any }) {
                     className="py-24 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-start"
                     initial="hidden"
                     whileInView="visible"
-                    // --- PERBAIKAN: Animasi berjalan setiap kali terlihat ---
                     viewport={{ once: false, amount: 0.2 }}
                 >
                     <motion.div className="md:col-span-2 text-left space-y-8" variants={sectionAnimation}>
                         <div>
                             <h2 className="text-4xl font-bold mb-4">About Me</h2>
-                            {/* --- DIKEMBALIKAN: Animasi per-kata asli Anda --- */}
                             <motion.p className="text-gray-400 font-sans leading-relaxed" variants={sentenceAnimation} initial="hidden" whileInView="visible" viewport={{ once: false, amount: 0.5 }}>
                                 {aboutMe && aboutMe.split(" ").map((word: string, index: number) => (<span key={word + "-" + index} className="inline-block overflow-hidden pb-1"><motion.span variants={wordAnimation} className="inline-block">{word}{"\u00A0"}</motion.span></span>))}
                             </motion.p>
                             <motion.button onClick={() => setIsCvVisible(true)} className="mt-6 px-6 py-2 border border-gray-500 text-white font-semibold rounded-lg transition-all hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-white" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Lihat CV</motion.button>
                         </div>
 
-                        {/* --- DITAMBAHKAN: Animasi untuk blok Education --- */}
                         <motion.div variants={sectionAnimation} custom={1}>
                             <h2 className="text-4xl font-bold mb-4">Education</h2>
                             <div className="flex justify-between items-start font-sans text-lg">
@@ -143,7 +131,6 @@ export default function ClientHomePage({ data }: { data: any }) {
                             </div>
                         </motion.div>
 
-                        {/* --- DITAMBAHKAN: Animasi stagger untuk ikon sosial media --- */}
                         <motion.div 
                             className="flex gap-6 items-center"
                             variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } }}

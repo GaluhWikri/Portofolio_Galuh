@@ -2,21 +2,21 @@
 
 'use client';
 
-import { useState, useEffect, FC } from 'react';
+import { useState, useEffect, FC, useCallback } from 'react';
 import Image from 'next/image';
 
-// Interface untuk tipe data
+// Interface untuk tipe data (Tidak ada perubahan)
 interface Project {
     id?: number;
     title: string;
     tech: string[];
-    imgSrc: string; 
+    imgSrc: string;
 }
 
 interface Tool {
     id?: number;
     name: string;
-    icon: string; 
+    icon: string;
 }
 
 interface PortfolioData {
@@ -30,14 +30,35 @@ interface PortfolioData {
     projects: Project[];
 }
 
-// Tipe untuk menentukan tampilan mana yang aktif
 type ActiveView = 'about' | 'education' | 'projects' | 'tools';
 
-// Komponen Ikon Sederhana
+// Komponen Ikon (Tidak ada perubahan)
 const Icon: FC<{ d: string, className?: string }> = ({ d, className }) => (
     <svg className={`w-5 h-5 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
     </svg>
+);
+
+// --- PERUBAHAN: Komponen Wrapper untuk setiap bagian form ---
+// Ini membantu konsistensi dan mengurangi pengulangan kode
+const SectionWrapper: FC<{ title: string; children: React.ReactNode; onAddItem?: () => void; addItemLabel?: string }> = ({ title, children, onAddItem, addItemLabel }) => (
+    <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
+        <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-white">{title}</h2>
+            {onAddItem && (
+                <button
+                    onClick={onAddItem}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all transform hover:scale-105"
+                >
+                    <Icon d="M12 4v16m8-8H4" />
+                    <span>{addItemLabel || 'Tambah'}</span>
+                </button>
+            )}
+        </div>
+        <div className="space-y-6">
+            {children}
+        </div>
+    </div>
 );
 
 export default function Dashboard() {
@@ -46,14 +67,13 @@ export default function Dashboard() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
-    
+
     const [availableIcons, setAvailableIcons] = useState<string[]>([]);
     const [isIconPickerOpen, setIconPickerOpen] = useState(false);
     const [currentTargetToolIndex, setCurrentTargetToolIndex] = useState<'new' | number | null>(null);
 
     const [activeView, setActiveView] = useState<ActiveView>('about');
 
-    // Mengambil data portfolio dan ikon
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -69,7 +89,7 @@ export default function Dashboard() {
 
                 const portfolioData = await dataRes.json();
                 const iconsData = await iconsRes.json();
-                
+
                 setData(portfolioData);
                 setAvailableIcons(iconsData.icons || []);
 
@@ -83,7 +103,6 @@ export default function Dashboard() {
         fetchData();
     }, []);
 
-    // --- Handlers untuk data ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setData(prev => {
@@ -95,7 +114,7 @@ export default function Dashboard() {
             return { ...prev, [name]: value };
         });
     };
-    
+
     const handleArrayChange = (arrayName: 'projects' | 'tools', index: number, field: string, value: string | string[]) => {
         setData(prevData => {
             if (!prevData) return prevData;
@@ -128,23 +147,27 @@ export default function Dashboard() {
     const handleRemoveItem = (arrayName: 'projects' | 'tools', index: number) => {
         setData(prev => {
             if (!prev) return prev;
-            return { ...prev, [arrayName]: (prev[arrayName] as any[]).filter((_, i) => i !== index) };
+            // --- PERBAIKAN: Konfirmasi sebelum menghapus ---
+            const itemName = arrayName === 'projects'
+                ? prev.projects[index]?.title
+                : prev.tools[index]?.name;
+            if (window.confirm(`Anda yakin ingin menghapus "${itemName}"?`)) {
+                return { ...prev, [arrayName]: (prev[arrayName] as any[]).filter((_, i) => i !== index) };
+            }
+            return prev;
         });
     };
-    
+
     const handleFileRead = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => {
-            const base64String = event.target?.result as string;
-            handleArrayChange('projects', index, 'imgSrc', base64String);
+            handleArrayChange('projects', index, 'imgSrc', event.target?.result as string);
         };
         reader.readAsDataURL(file);
     };
 
-    // --- Handlers untuk ikon ---
     const openIconPicker = (index: 'new' | number) => {
         setCurrentTargetToolIndex(index);
         setIconPickerOpen(true);
@@ -173,7 +196,6 @@ export default function Dashboard() {
         setCurrentTargetToolIndex(null);
     };
 
-    // --- Handler untuk simpan data ---
     const handleSave = async () => {
         if (!data) return;
         setSaving(true);
@@ -192,11 +214,10 @@ export default function Dashboard() {
             setError(error.message);
         } finally {
             setSaving(false);
-            setTimeout(() => { setMessage(''); setError(null); }, 5000);
+            setTimeout(() => { setMessage(''); setError(null); }, 3000);
         }
     };
-    
-    // -- Render komponen --
+
     if (loading) return <div className="flex items-center justify-center h-screen bg-gray-900 text-white"><p>Loading Dashboard...</p></div>;
     if (error && !data) return <div className="flex items-center justify-center h-screen bg-gray-900 text-red-400"><p>Error: {error}</p></div>;
 
@@ -209,7 +230,6 @@ export default function Dashboard() {
 
     return (
         <div className="flex h-screen bg-gray-900 text-white font-sans">
-            {/* Sidebar */}
             <aside className="w-64 flex-shrink-0 bg-gray-800 flex flex-col">
                 <div className="h-20 flex items-center justify-center text-2xl font-bold border-b border-gray-700">
                     Dashboard
@@ -219,9 +239,8 @@ export default function Dashboard() {
                         <button
                             key={item.id}
                             onClick={() => setActiveView(item.id as ActiveView)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 my-1 rounded-lg transition-colors ${
-                                activeView === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-                            }`}
+                            className={`w-full flex items-center gap-3 px-4 py-3 my-1 rounded-lg transition-colors ${activeView === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                                }`}
                         >
                             <Icon d={item.icon} />
                             <span>{item.label}</span>
@@ -229,93 +248,99 @@ export default function Dashboard() {
                     ))}
                 </nav>
                 <div className="p-4 border-t border-gray-700">
-                     <a href="/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white">
+                    <a href="/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white">
                         <Icon d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         <span>Lihat Portofolio</span>
                     </a>
                 </div>
             </aside>
 
-            {/* Main Content */}
             <main className="flex-1 flex flex-col overflow-hidden">
-                <header className="h-20 bg-gray-900 border-b border-gray-700 flex items-center justify-between px-8">
-                    <h1 className="text-xl font-semibold">Edit {navItems.find(i => i.id === activeView)?.label}</h1>
+                {/* --- PERBAIKAN: Header lebih bersih dan informatif --- */}
+                <header className="h-20 bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 flex items-center justify-between px-8 sticky top-0 z-10">
+                    <h1 className="text-xl font-semibold">Edit <span className='text-blue-400'>{navItems.find(i => i.id === activeView)?.label}</span></h1>
                     <div className="flex items-center gap-4">
-                        {error && <p className="text-sm text-red-400">{error}</p>}
                         {message && <p className="text-sm text-green-400">{message}</p>}
-                        <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-500 transition-colors">
+                        {error && <p className="text-sm text-red-400">{error}</p>}
+                        <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg">
                             {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                         </button>
                     </div>
                 </header>
-                
-                <div className="flex-1 overflow-y-auto p-8">
+
+                <div className="flex-1 overflow-y-auto p-8 space-y-8">
                     {data && (
                         <>
                             {activeView === 'about' && (
-                                <div>
-                                    <h2 className="text-2xl font-semibold mb-4">About Me Section</h2>
-                                    <textarea name="aboutMe" value={data.aboutMe} onChange={handleInputChange} rows={8} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                </div>
+                                <SectionWrapper title="About Me">
+                                    <textarea
+                                        name="aboutMe"
+                                        value={data.aboutMe}
+                                        onChange={handleInputChange}
+                                        rows={10}
+                                        className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+                                        placeholder='Tuliskan sesuatu tentang dirimu...'
+                                    />
+                                </SectionWrapper>
                             )}
 
                             {activeView === 'education' && (
-                                <div>
-                                    <h2 className="text-2xl font-semibold mb-4">Education Section</h2>
+                                <SectionWrapper title="Education">
                                     <div className="space-y-4">
-                                        <div><label className="block text-sm text-gray-400 mb-1">University</label><input type="text" name="education.university" value={data.education.university} onChange={handleInputChange} className="w-full p-2 bg-gray-800 border border-gray-700 rounded-md" /></div>
-                                        <div><label className="block text-sm text-gray-400 mb-1">Major</label><input type="text" name="education.major" value={data.education.major} onChange={handleInputChange} className="w-full p-2 bg-gray-800 border border-gray-700 rounded-md" /></div>
-                                        <div><label className="block text-sm text-gray-400 mb-1">Period</label><input type="text" name="education.period" value={data.education.period} onChange={handleInputChange} className="w-full p-2 bg-gray-800 border border-gray-700 rounded-md" /></div>
+                                        <div><label className="block text-sm font-medium text-gray-300 mb-2">Universitas</label><input type="text" name="education.university" value={data.education.university} onChange={handleInputChange} className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" /></div>
+                                        <div><label className="block text-sm font-medium text-gray-300 mb-2">Jurusan</label><input type="text" name="education.major" value={data.education.major} onChange={handleInputChange} className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" /></div>
+                                        <div><label className="block text-sm font-medium text-gray-300 mb-2">Periode</label><input type="text" name="education.period" value={data.education.period} onChange={handleInputChange} className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" placeholder='Contoh: 2022 - Sekarang' /></div>
                                     </div>
-                                </div>
+                                </SectionWrapper>
                             )}
 
                             {activeView === 'projects' && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-semibold">Projects Section</h2><button onClick={() => handleAddItem('projects')} className="bg-green-600 px-3 py-1 rounded-md hover:bg-green-700 text-sm">+</button></div>
-                                    <div className="space-y-6">
-                                        {data.projects.map((project, index) => (
-                                            <div key={project.id || `project-${index}`} className="bg-gray-800 p-4 rounded-lg space-y-3">
-                                                <input type="text" placeholder="Project Title" value={project.title} onChange={(e) => handleArrayChange('projects', index, 'title', e.target.value)} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
-                                                <input type="text" placeholder="Tech (comma separated)" value={project.tech.join(', ')} onChange={(e) => handleArrayChange('projects', index, 'tech', e.target.value)} className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md" />
-                                                <div className='flex items-center gap-4'>
-                                                    {project.imgSrc && <Image src={project.imgSrc} alt="Preview" width={80} height={80} className="object-cover rounded-md bg-gray-700" />}
-                                                    <label htmlFor={`upload-project-${index}`} className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">Pilih Gambar</label>
-                                                    <input id={`upload-project-${index}`} type="file" accept="image/*" onChange={(e) => handleFileRead(e, index)} className="hidden" />
-                                                </div>
-                                                <button onClick={() => handleRemoveItem('projects', index)} className="text-red-500 hover:text-red-400 font-bold ml-auto block text-sm">&times; Hapus</button>
+                                <SectionWrapper title="Projects" onAddItem={() => handleAddItem('projects')} addItemLabel="Tambah Proyek">
+                                    {data.projects.map((project, index) => (
+                                        <div key={project.id || `project-${index}`} className="bg-gray-700/50 p-5 rounded-lg border border-gray-600 space-y-4 relative group">
+                                            <button onClick={() => handleRemoveItem('projects', index)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700">&times;</button>
+                                            <input type="text" placeholder="Judul Proyek" value={project.title} onChange={(e) => handleArrayChange('projects', index, 'title', e.target.value)} className="w-full p-3 bg-gray-600 border border-gray-500 rounded-md text-lg font-semibold" />
+                                            <textarea placeholder="Teknologi yang digunakan (pisahkan dengan koma)" value={project.tech.join(', ')} onChange={(e) => handleArrayChange('projects', index, 'tech', e.target.value)} className="w-full p-3 bg-gray-600 border border-gray-500 rounded-md text-sm" rows={2} />
+                                            <div className='flex items-center gap-4'>
+                                                <Image src={project.imgSrc || '/assets/image/placeholder.png'} alt="Preview" width={120} height={80} className="object-cover rounded-md bg-gray-600" />
+                                                <label htmlFor={`upload-project-${index}`} className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-all">
+                                                    {project.imgSrc ? 'Ganti Gambar' : 'Pilih Gambar'}
+                                                </label>
+                                                <input id={`upload-project-${index}`} type="file" accept="image/*" onChange={(e) => handleFileRead(e, index)} className="hidden" />
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                        </div>
+                                    ))}
+                                </SectionWrapper>
                             )}
 
                             {activeView === 'tools' && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-semibold">Tools & Others Section</h2><button onClick={() => handleAddItem('tools')} className="bg-green-600 px-3 py-1 rounded-md hover:bg-green-700 text-sm">+</button></div>
-                                    <div className="space-y-4">
+                                <SectionWrapper title="Tools & Others" onAddItem={() => handleAddItem('tools')} addItemLabel="Tambah Tool">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {data.tools.map((tool, index) => (
-                                            <div key={tool.id || `tool-${index}`} className="bg-gray-800 p-4 rounded-lg flex gap-4 items-center">
-                                                {tool.icon && <Image src={tool.icon} alt={tool.name} width={40} height={40} className="object-contain bg-gray-700 rounded-md p-1" />}
-                                                <p className="flex-grow font-semibold text-gray-200">{tool.name}</p>
-                                                <button onClick={() => openIconPicker(index)} className="cursor-pointer bg-blue-600 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-700">Ganti Ikon</button>
-                                                <button onClick={() => handleRemoveItem('tools', index)} className="text-red-500 hover:text-red-400 font-bold p-2 shrink-0 text-sm">&times; Hapus</button>
+                                            <div key={tool.id || `tool-${index}`} className="bg-gray-700 p-4 rounded-lg flex gap-4 items-center justify-between hover:bg-gray-600/50 transition-colors group">
+                                                <div className="flex items-center gap-4">
+                                                    {tool.icon && <Image src={tool.icon} alt={tool.name} width={40} height={40} className="object-contain bg-gray-800 rounded-md p-1" />}
+                                                    <p className="font-semibold text-gray-200">{tool.name}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => openIconPicker(index)} className="p-2 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700"><Icon d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z" /></button>
+                                                    <button onClick={() => handleRemoveItem('tools', index)} className="p-2 bg-red-600 text-white rounded-md text-xs hover:bg-red-700"><Icon d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                </SectionWrapper>
                             )}
                         </>
                     )}
                 </div>
             </main>
 
-            {/* Modal untuk Icon Picker */}
             {isIconPickerOpen && (
                 <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-                    <div className="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-2xl">
+                    <div className="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-4xl">
                         <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold">Pilih Ikon</h3><button onClick={() => setIconPickerOpen(false)} className="text-2xl font-bold">&times;</button></div>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 max-h-[60vh] overflow-y-auto p-2 bg-gray-900 rounded-md">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 max-h-[60vh] overflow-y-auto p-2 bg-gray-900 rounded-md">
                             {availableIcons.map(icon => (
                                 <div key={icon} onClick={() => handleIconSelect(icon)} className="p-2 bg-gray-700 rounded-md cursor-pointer hover:bg-blue-600 transition-colors flex flex-col items-center justify-center aspect-square gap-2">
                                     <Image src={`/assets/icon/${icon}`} alt={icon} width={48} height={48} className="object-contain" />
