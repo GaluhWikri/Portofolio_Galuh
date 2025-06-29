@@ -1,18 +1,44 @@
 {
-  "aboutMe": "Ini adalah teks tentang saya yang bisa diubah dari dashboard.",
+  "aboutMe": "I'm passionate about programming and software development, always eager to learn and build new things. A self-proclaimed expert in “Google Searching” and “Copy-Pasting” 🚀 — because sometimes, the right snippet at the right time is all you need. Feel free to browse through my repositories. Let’s explore the digital world together with the power of Ctrl+C and Ctrl+V",
   "education": {
     "university": "Universitas Pasundan",
     "major": "Informatic Engineering",
     "period": "October 2022 - Present"
   },
   "tools": [
-    { "name": "Figma", "icon": "/assets/icon/icons8-figma-48.png" }
+    { "name": "Figma", "icon": "/assets/icon/icons8-figma-48.png" },
+    { "name": "Git", "icon": "/assets/icon/icons8-git-48.png" },
+    { "name": "Docker", "icon": "/assets/icon/icons8-docker-48.png" },
+    { "name": "", "icon": "/assets/icon/icons8-canva-48.png" },
+    { "name": "AndroidStudio", "icon": "/assets/icon/icons8-android-studio-48.png" },
+    { "name": "Photoshop", "icon": "/assets/icon/icons8-photoshop-48.png" },
+    { "name": "Mysql", "icon": "/assets/icon/icons8-mysql-48.png" },
+    { "name": "typescript", "icon": "/assets/icon/icons8-typescript-48.png" },
+    { "name": "Visual Studio Code", "icon": "/assets/icon/icons8-visual-studio-code-2019-48.png" },
+    { "name": "Postman", "icon": "/assets/icon/icons8-postman-inc-50.png" },
+    { "name": "Tailwind", "icon": "/assets/icon/icons8-tailwindcss-48.png" },
+    { "name": "PHP", "icon": "/assets/icon/icons8-php-50.png" }
   ],
   "projects": [
     {
-      "title": "Proyek Contoh",
-      "tech": ["React", "Next.js"],
-      "imgSrc": "/assets/image/project-a.jpg"
+      "title": "Porte Good Redesign",
+      "tech": ["UI UX DESIGN"],
+      "imgSrc": "/uploads/projects/1751194731866-redesign-web-portee-good.svg+xml"
+    },
+    {
+      "title": "MedEasy",
+      "tech": ["UI UX DESIGN"],
+      "imgSrc": "/uploads/projects/1751194732296-medeasy.svg+xml"
+    },
+    {
+      "title": "Galuh Course",
+      "tech": ["UI UX DESIGN"],
+      "imgSrc": "/uploads/projects/1751194732013-galuh-course.svg+xml"
+    },
+    {
+      "title": "BO",
+      "tech": ["UI UX DESIGN"],
+      "imgSrc": "/uploads/projects/1751194732260-booom-blog.svg+xml"
     }
   ]
 }
