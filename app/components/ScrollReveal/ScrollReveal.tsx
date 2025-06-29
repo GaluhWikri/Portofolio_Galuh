@@ -1,3 +1,5 @@
+// app/components/ScrollReveal/ScrollReveal.tsx
+
 import React, { useEffect, useRef, useMemo, ReactNode, RefObject } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -52,37 +54,41 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
         ? scrollContainerRef.current
         : window;
 
+    // ================= PERBAIKAN =================
+    // Menghapus `scrub: true` agar animasi tidak terikat dengan scroll
     gsap.fromTo(
       el,
-      { transformOrigin: "0% 50%", rotate: baseRotation },
+      { transformOrigin: "0% 50%", rotate: baseRotation, opacity: 0 },
       {
-        ease: "none",
         rotate: 0,
+        opacity: 1,
+        duration: 1, // Beri durasi agar animasi terlihat
+        ease: "power3.out",
         scrollTrigger: {
           trigger: el,
           scroller,
-          start: "top bottom",
-          end: rotationEnd,
-          scrub: true,
+          start: "top bottom-=10%", // Pemicu saat elemen 10% masuk layar
+          toggleActions: "play none none none" // Mainkan sekali dan selesai
         },
       }
     );
 
-    const wordElements = el.querySelectorAll<HTMLElement>(".word");
+    const wordElements = el.querySelectorAll<HTMLElement>("span.inline-block");
 
     gsap.fromTo(
       wordElements,
-      { opacity: baseOpacity, willChange: "opacity" },
+      { opacity: baseOpacity, y: 20 },
       {
-        ease: "none",
         opacity: 1,
+        y: 0,
         stagger: 0.05,
+        duration: 0.8,
+        ease: "power3.out",
         scrollTrigger: {
           trigger: el,
           scroller,
-          start: "top bottom-=20%",
-          end: wordAnimationEnd,
-          scrub: true,
+          start: "top bottom-=15%",
+          toggleActions: "play none none none"
         },
       }
     );
@@ -92,19 +98,20 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
         wordElements,
         { filter: `blur(${blurStrength}px)` },
         {
-          ease: "none",
           filter: "blur(0px)",
           stagger: 0.05,
+          duration: 1,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: el,
             scroller,
-            start: "top bottom-=20%",
-            end: wordAnimationEnd,
-            scrub: true,
+            start: "top bottom-=15%",
+            toggleActions: "play none none none"
           },
         }
       );
     }
+    // ===========================================
 
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
@@ -114,8 +121,6 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
     enableBlur,
     baseRotation,
     baseOpacity,
-    rotationEnd,
-    wordAnimationEnd,
     blurStrength,
   ]);
 

@@ -33,12 +33,12 @@
     {
       "title": "Galuh Course",
       "tech": ["UI UX DESIGN"],
-      "imgSrc": "/uploads/projects/1751194732013-galuh-course.svg+xml"
+      "imgSrc": "/uploads/projects/course.jpg"
     },
     {
-      "title": "BO",
+      "title": "BOOOM Blog",
       "tech": ["UI UX DESIGN"],
-      "imgSrc": "/uploads/projects/1751194732260-booom-blog.svg+xml"
+      "imgSrc": "/uploads/projects/ScreenShoot.jpg"
     }
   ]
 }
