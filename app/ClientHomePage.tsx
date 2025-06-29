@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import Navbar from "./components/Navbar/navbar";
 import RotatingText from "./components/RotatingText/RotatingText";
+// Komponen Image dari next/image tetap diimpor untuk digunakan di bagian lain (Tools)
 import Image from "next/image";
 
 import ClientOnly from "./components/ClientOnly";
@@ -19,30 +20,30 @@ interface Project {
     imgSrc: string | null;
 }
 
-const sectionAnimation: Variants = { 
-    hidden: { opacity: 0, y: 30 }, 
-    visible: (i = 0) => ({ 
-        opacity: 1, 
-        y: 0, 
-        transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" } 
-    }) 
+const sectionAnimation: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: (i = 0) => ({
+        opacity: 1,
+        y: 0,
+        transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" }
+    })
 };
 
-const sentenceAnimation: Variants = { 
-    hidden: { opacity: 1 }, 
-    visible: { opacity: 1, transition: { staggerChildren: 0.04 } } 
+const sentenceAnimation: Variants = {
+    hidden: { opacity: 1 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.04 } }
 };
 
-const wordAnimation: Variants = { 
-    hidden: { y: '100%' }, 
-    visible: { y: '0%', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } 
+const wordAnimation: Variants = {
+    hidden: { y: '100%' },
+    visible: { y: '0%', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
 };
 
 // Komponen Kartu Proyek (ProjectCard)
 const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: string[], imgSrc: string | null, onClick: () => void }) => {
-    const cardVariants: Variants = { 
-        initial: { opacity: 0, y: 20 }, 
-        inView: { opacity: 1, y: 0, transition: { duration: 0.5 } } 
+    const cardVariants: Variants = {
+        initial: { opacity: 0, y: 20 },
+        inView: { opacity: 1, y: 0, transition: { duration: 0.5 } }
     };
     const overlayVariants: Variants = { hover: { opacity: 1 }, initial: { opacity: 0 } };
     const textVariants: Variants = { hover: { y: 0, opacity: 1 }, initial: { y: 10, opacity: 0 } };
@@ -57,9 +58,16 @@ const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: st
             viewport={{ once: false, amount: 0.3 }}
         >
             {/* ================================================================== */}
-            {/* PERBAIKAN ADA DI BARIS INI                     */}
+            {/* PERBAIKAN UTAMA: Mengganti Next/Image dengan tag <img> biasa     */}
             {/* ================================================================== */}
-            {imgSrc && <Image src={imgSrc} alt={title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="rounded-lg object-cover object-top transition-transform duration-500 ease-in-out group-hover:scale-110" unoptimized />}
+            {imgSrc && (
+                <img 
+                    src={imgSrc} 
+                    alt={title} 
+                    className="absolute inset-0 w-full h-full rounded-lg object-cover object-top transition-transform duration-500 ease-in-out group-hover:scale-110" 
+                    loading="lazy"
+                />
+            )}
             
             <motion.div className="absolute inset-0 bg-black bg-opacity-60 rounded-lg" variants={overlayVariants} initial="initial" whileHover="hover" transition={{ duration: 0.3 }}>
                 <div className="p-6 h-full flex flex-col justify-end">
@@ -104,8 +112,8 @@ export default function ClientHomePage({ data }: { data: any }) {
                     </ClientOnly>
                 </section>
 
-                <motion.section 
-                    id="about" 
+                <motion.section
+                    id="about"
                     className="py-24 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-start"
                     initial="hidden"
                     whileInView="visible"
@@ -131,7 +139,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                             </div>
                         </motion.div>
 
-                        <motion.div 
+                        <motion.div
                             className="flex gap-6 items-center"
                             variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } }}
                         >
@@ -140,7 +148,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                             <motion.a variants={sectionAnimation} href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-white hover:text-gray-400 transition-colors"><svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg></motion.a>
                         </motion.div>
                     </motion.div>
-                    
+
                     <motion.div variants={sectionAnimation} custom={1}>
                         <div className="bg-white text-black rounded-2xl p-6 flex flex-col items-center">
                             <h3 className="text-3xl font-bold mb-6 text-center">Tools & Others</h3>
@@ -164,7 +172,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {projects.map((project: Project) => (
                             <ProjectCard
-                                key={project.title} // Menggunakan title sebagai key jika id tidak ada
+                                key={project.title}
                                 title={project.title}
                                 tech={project.tech}
                                 imgSrc={project.imgSrc}
@@ -228,15 +236,13 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 {selectedProject.imgSrc && (
                                     <div className="relative w-full h-auto">
                                         {/* ================================================================== */}
-                                        {/* PERBAIKAN ADA DI BARIS INI                     */}
+                                        {/* PERBAIKAN UTAMA: Mengganti Next/Image dengan tag <img> biasa     */}
                                         {/* ================================================================== */}
-                                        <Image
+                                        <img
                                             src={selectedProject.imgSrc}
                                             alt={`Tampilan Proyek ${selectedProject.title}`}
-                                            width={1920}
-                                            height={1080}
                                             className="object-contain w-full h-auto rounded-lg shadow-2xl"
-                                            unoptimized
+                                            loading="lazy"
                                         />
                                     </div>
                                 )}
