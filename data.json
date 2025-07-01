@@ -1,5 +1,5 @@
 {
-  "aboutMe": "Hai, saya Galuh Wikri — seorang penggemar UI/UX yang bersemangat dan calon pengembang frontend. Saya suka mewujudkan ide-ide digital melalui desain yang cermat dan antarmuka yang bersih dan fungsional. Perjalanan saya dimulai dari proyek-proyek kampus, dan sekarang saya terus-menerus mengeksplorasi cara-cara baru untuk meningkatkan pengalaman pengguna, baik melalui kode maupun desain. Baik itu membuat prototipe di Figma atau membangun antarmuka web yang responsif, saya senang mengubah masalah menjadi solusi yang intuitif. Mari kita ciptakan sesuatu yang luar biasa bersama-sama!",
+  "aboutMe": "Hi, I’m Galuh Wikri — a passionate UI/UX enthusiast and aspiring frontend developer. I love bringing digital ideas to life through thoughtful design and clean, functional interfaces. My journey began with campus projects, and now I’m constantly exploring new ways to improve user experiences through both code and design. Whether it’s prototyping in Figma or building responsive web interfaces, I enjoy turning problems into intuitive solutions. Let’s create something amazing together!",
   "education": {
     "university": "Universitas Pasundan",
     "major": "Informatic Engineering",
@@ -17,7 +17,10 @@
     { "name": "Visual Studio Code", "icon": "/assets/icon/icons8-visual-studio-code-2019-48.png" },
     { "name": "Postman", "icon": "/assets/icon/icons8-postman-inc-50.png" },
     { "name": "Tailwind", "icon": "/assets/icon/icons8-tailwindcss-48.png" },
-    { "name": "PHP", "icon": "/assets/icon/icons8-php-50.png" }
+    { "name": "PHP", "icon": "/assets/icon/icons8-php-50.png" },
+    {"name": "boostrap", "icon": "/assets/icon/icons8-bootstrap-48.png" },
+    { "name": "ReactJS", "icon": "/assets/icon/icons8-react-30.png" },
+    { "name": "NodeJS", "icon": "/assets/icon/icons8-nodejs-48.png" }
   ],
   "projects": [
     {

@@ -9,9 +9,15 @@ const interTight = Inter_Tight({
   variable: "--font-primary", 
 });
 
+// --- PERUBAHAN UTAMA DI SINI ---
+// Menambahkan properti 'icons' untuk menampilkan favicon.ico
 export const metadata: Metadata = {
   title: "Portfolio",
   description: "Modern Portfolio",
+  icons: {
+    // Menunjuk ke file favicon.ico di direktori /public
+    icon: '/favicon.ico', 
+  },
 };
 
 export default function RootLayout({
@@ -20,7 +26,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // --- PERBAIKAN WAJIB: Menambahkan suppressHydrationWarning pada <html> ---
     <html lang="en" suppressHydrationWarning>
       <body className={`${interTight.variable} font-sans antialiased`}>
         {children}

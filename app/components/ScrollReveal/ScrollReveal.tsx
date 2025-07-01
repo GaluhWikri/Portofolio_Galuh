@@ -9,27 +9,15 @@ gsap.registerPlugin(ScrollTrigger);
 interface ScrollRevealProps {
   children: ReactNode;
   scrollContainerRef?: RefObject<HTMLElement>;
-  enableBlur?: boolean;
-  baseOpacity?: number;
-  baseRotation?: number;
-  blurStrength?: number;
   containerClassName?: string;
   textClassName?: string;
-  rotationEnd?: string;
-  wordAnimationEnd?: string;
 }
 
 const ScrollReveal: React.FC<ScrollRevealProps> = ({
   children,
   scrollContainerRef,
-  enableBlur = true,
-  baseOpacity = 0.1,
-  baseRotation = 3,
-  blurStrength = 4,
   containerClassName = "",
   textClassName = "",
-  rotationEnd = "bottom bottom",
-  wordAnimationEnd = "bottom bottom",
 }) => {
   const containerRef = useRef<HTMLHeadingElement>(null);
 
@@ -54,81 +42,42 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
         ? scrollContainerRef.current
         : window;
 
-    // ================= PERBAIKAN =================
-    // Menghapus `scrub: true` agar animasi tidak terikat dengan scroll
-    gsap.fromTo(
-      el,
-      { transformOrigin: "0% 50%", rotate: baseRotation, opacity: 0 },
-      {
-        rotate: 0,
-        opacity: 1,
-        duration: 1, // Beri durasi agar animasi terlihat
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: el,
-          scroller,
-          start: "top bottom-=10%", // Pemicu saat elemen 10% masuk layar
-          toggleActions: "play none none none" // Mainkan sekali dan selesai
-        },
-      }
-    );
-
     const wordElements = el.querySelectorAll<HTMLElement>("span.inline-block");
 
+    // ================= PERUBAIKAN UTAMA =================
+    // Animasi untuk setiap kata, menggabungkan opacity dan pergerakan (y)
+    // untuk efek "hilang dan muncul" yang lebih jelas.
     gsap.fromTo(
       wordElements,
-      { opacity: baseOpacity, y: 20 },
+      { 
+        opacity: 0, // Mulai dari tidak terlihat
+        y: 20,      // Mulai dari posisi sedikit di bawah
+      },
       {
-        opacity: 1,
-        y: 0,
+        opacity: 1, // Menjadi terlihat penuh
+        y: 0,       // Kembali ke posisi asli
         stagger: 0.05,
         duration: 0.8,
         ease: "power3.out",
         scrollTrigger: {
           trigger: el,
           scroller,
-          start: "top bottom-=15%",
-          toggleActions: "play none none none"
+          start: "top bottom-=100", // Pemicu animasi saat elemen masuk viewport
+          // Mainkan saat masuk, balikkan saat keluar, mainkan lagi saat masuk kembali
+          toggleActions: "play reverse play reverse",
         },
       }
     );
-
-    if (enableBlur) {
-      gsap.fromTo(
-        wordElements,
-        { filter: `blur(${blurStrength}px)` },
-        {
-          filter: "blur(0px)",
-          stagger: 0.05,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: el,
-            scroller,
-            start: "top bottom-=15%",
-            toggleActions: "play none none none"
-          },
-        }
-      );
-    }
-    // ===========================================
+    // =================================================
 
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [
-    scrollContainerRef,
-    enableBlur,
-    baseRotation,
-    baseOpacity,
-    blurStrength,
-  ]);
+  }, [scrollContainerRef]);
 
   return (
     <h2 ref={containerRef} className={`my-5 ${containerClassName}`}>
-      <p
-        className={`text-[clamp(1.6rem,4vw,3rem)] leading-[1.5] font-semibold ${textClassName}`}
-      >
+      <p className={`leading-[1.5] font-semibold ${textClassName}`}>
         {splitText}
       </p>
     </h2>
