@@ -4,9 +4,9 @@ import ClientHomePage from './ClientHomePage';
 import fs from 'fs/promises';
 import path from 'path';
 
-export const revalidate = 0; // Pastikan data selalu yang terbaru saat build
+export const revalidate = 0; // Memastikan data selalu yang terbaru saat build
 
-// Fungsi ini sekarang akan membaca data dari file data.json
+// Fungsi ini akan membaca data dari file data.json
 async function getPortfolioData() {
     try {
         // Tentukan path ke file data.json
