@@ -5,8 +5,16 @@ const nextConfig = {
     // melalui komponen <Image>.
     dangerouslyAllowSVG: true,
     // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'image.thum.io',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
-  
+
   // Konfigurasi webpack untuk mengubah file .svg menjadi komponen React
   // Ini adalah cara yang paling direkomendasikan dan fleksibel.
   webpack(config) {

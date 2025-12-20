@@ -6,42 +6,162 @@
     "period": "October 2022 - Present"
   },
   "tools": [
-    { "name": "Figma", "icon": "/assets/icon/icons8-figma-48.png" },
-    { "name": "Git", "icon": "/assets/icon/icons8-git-48.png" },
-    { "name": "Docker", "icon": "/assets/icon/icons8-docker-48.png" },
-    { "name": "", "icon": "/assets/icon/icons8-canva-48.png" },
-    { "name": "AndroidStudio", "icon": "/assets/icon/icons8-android-studio-48.png" },
-    { "name": "Photoshop", "icon": "/assets/icon/icons8-photoshop-48.png" },
-    { "name": "Mysql", "icon": "/assets/icon/icons8-mysql-48.png" },
-    { "name": "typescript", "icon": "/assets/icon/icons8-typescript-48.png" },
-    { "name": "Visual Studio Code", "icon": "/assets/icon/icons8-visual-studio-code-2019-48.png" },
-    { "name": "Postman", "icon": "/assets/icon/icons8-postman-inc-50.png" },
-    { "name": "Tailwind", "icon": "/assets/icon/icons8-tailwindcss-48.png" },
-    { "name": "PHP", "icon": "/assets/icon/icons8-php-50.png" },
-    {"name": "boostrap", "icon": "/assets/icon/icons8-bootstrap-48.png" },
-    { "name": "ReactJS", "icon": "/assets/icon/icons8-react-30.png" },
-    { "name": "NodeJS", "icon": "/assets/icon/icons8-nodejs-48.png" }
+    {
+      "name": "Figma",
+      "icon": "/assets/icon/icons8-figma-48.png"
+    },
+    {
+      "name": "Git",
+      "icon": "/assets/icon/icons8-git-48.png"
+    },
+    {
+      "name": "Docker",
+      "icon": "/assets/icon/icons8-docker-48.png"
+    },
+    {
+      "name": "",
+      "icon": "/assets/icon/icons8-canva-48.png"
+    },
+    {
+      "name": "AndroidStudio",
+      "icon": "/assets/icon/icons8-android-studio-48.png"
+    },
+    {
+      "name": "Photoshop",
+      "icon": "/assets/icon/icons8-photoshop-48.png"
+    },
+    {
+      "name": "Mysql",
+      "icon": "/assets/icon/icons8-mysql-48.png"
+    },
+    {
+      "name": "typescript",
+      "icon": "/assets/icon/icons8-typescript-48.png"
+    },
+    {
+      "name": "Visual Studio Code",
+      "icon": "/assets/icon/icons8-visual-studio-code-2019-48.png"
+    },
+    {
+      "name": "Postman",
+      "icon": "/assets/icon/icons8-postman-inc-50.png"
+    },
+    {
+      "name": "Tailwind",
+      "icon": "/assets/icon/icons8-tailwindcss-48.png"
+    },
+    {
+      "name": "PHP",
+      "icon": "/assets/icon/icons8-php-50.png"
+    },
+    {
+      "name": "boostrap",
+      "icon": "/assets/icon/icons8-bootstrap-48.png"
+    },
+    {
+      "name": "ReactJS",
+      "icon": "/assets/icon/icons8-react-30.png"
+    },
+    {
+      "name": "NodeJS",
+      "icon": "/assets/icon/icons8-nodejs-48.png"
+    }
   ],
   "projects": [
     {
+      "id": 1,
       "title": "Porte Good Redesign",
-      "tech": ["UI UX DESIGN"],
+      "category": "UI/UX",
+      "tech": [
+        "UI UX DESIGN",
+        "Figma"
+      ],
       "imgSrc": "/uploads/projects/porte.jpg"
     },
     {
+      "id": 2,
       "title": "MedEasy",
-      "tech": ["UI UX DESIGN"],
+      "category": "UI/UX",
+      "tech": [
+        "UI UX DESIGN",
+        "Mobile App"
+      ],
       "imgSrc": "/uploads/projects/MedEasy.jpg"
     },
     {
+      "id": 3,
       "title": "Galuh Course",
-      "tech": ["UI UX DESIGN"],
+      "category": "UI/UX",
+      "tech": [
+        "UI UX DESIGN",
+        "Education"
+      ],
       "imgSrc": "/uploads/projects/course.jpg"
     },
     {
+      "id": 4,
       "title": "BOOOM Blog",
-      "tech": ["UI UX DESIGN"],
+      "category": "UI/UX",
+      "tech": [
+        "UI UX DESIGN",
+        "Web Design"
+      ],
       "imgSrc": "/uploads/projects/ScreenShoot.jpg"
+    },
+    {
+      "id": 5,
+      "title": "Fake The Run",
+      "category": "WEB",
+      "tech": [
+        "Next.js",
+        "Vercel"
+      ],
+      "link": "https://fake-the-run.vercel.app/",
+      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://fake-the-run.vercel.app/"
+    },
+    {
+      "id": 6,
+      "title": "Photo Booth Web",
+      "category": "WEB",
+      "tech": [
+        "React",
+        "Webcam API"
+      ],
+      "link": "https://photo-booth-web.vercel.app/",
+      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://photo-booth-web.vercel.app/"
+    },
+    {
+      "id": 7,
+      "title": "Click Creative",
+      "category": "WEB",
+      "tech": [
+        "Next.js",
+        "Creative"
+      ],
+      "link": "https://click-creative.vercel.app/",
+      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://click-creative.vercel.app/"
+    },
+    {
+      "id": 8,
+      "title": "Art Gallery",
+      "category": "WEB",
+      "tech": [
+        "React",
+        "Masonry"
+      ],
+      "link": "https://art-galerry.vercel.app/",
+      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://art-galerry.vercel.app/"
+    },
+    {
+      "id": 9,
+      "title": "Reformasi Indonesia",
+      "category": "WEB",
+      "tech": [
+        "React",
+        "History"
+      ],
+      "link": "https://reformasi-indonesia.vercel.app/",
+      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://reformasi-indonesia.vercel.app/"
     }
   ]
 }

@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import useIsMobile from '@/app/hooks/useIsMobile';
 import Navbar from "./components/Navbar/navbar";
 import RotatingText from "./components/RotatingText/RotatingText";
 import Image from "next/image";
@@ -16,6 +17,7 @@ import TextPressure from "./components/TextPressure/TextPressure";
 import StatsDashboard from "./components/StatsDashboard/StatsDashboard";
 import ScrollReveal from "./components/ScrollReveal/ScrollReveal";
 import VelocityScroll from "./components/VelocityScroll/VelocityScroll";
+import Footer from "./components/Footer/Footer";
 
 // Interface untuk tipe data Project
 interface Project {
@@ -23,6 +25,8 @@ interface Project {
     title: string;
     tech: string[];
     imgSrc: string | null;
+    category: string;
+    link?: string;
 }
 
 // Variabel untuk animasi Framer Motion
@@ -35,76 +39,101 @@ const sectionAnimation: Variants = {
     })
 };
 
-// Komponen Kartu Proyek (ProjectCard)
+import { ArrowUpRight } from 'lucide-react';
+
+// Komponen Kartu Proyek (ProjectCard) Modern
 const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: string[], imgSrc: string | null, onClick: () => void }) => {
     const [isLoaded, setIsLoaded] = useState(false);
 
+    // Varian animasi untuk card container
     const cardVariants: Variants = {
-        initial: { opacity: 0, y: 20 },
-        inView: {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
             opacity: 1,
             y: 0,
-            transition: { duration: 0.5 }
+            transition: { duration: 0.6, ease: "easeOut" }
         }
     };
-    const overlayVariants: Variants = { hover: { opacity: 1 }, initial: { opacity: 0 } };
-    const textVariants: Variants = { hover: { y: 0, opacity: 1 }, initial: { y: 10, opacity: 0 } };
 
-    // --- PERBAIKAN: Memastikan kartu tanpa gambar tetap muncul ---
+    // Pastikan card tetap dirender jika tidak ada gambar
     useEffect(() => {
-        if (!imgSrc) {
-            setIsLoaded(true);
-        }
+        if (!imgSrc) setIsLoaded(true);
     }, [imgSrc]);
 
     return (
         <motion.div
-            className="relative rounded-lg overflow-hidden group h-80 shadow-lg cursor-pointer bg-gray-800"
+            className="relative rounded-2xl overflow-hidden group h-96 shadow-2xl cursor-pointer bg-[#0C0A09] border border-white/5"
             variants={cardVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
             onClick={onClick}
-            initial="initial"
-            // --- PERBAIKAN: Menggunakan whileInView untuk memicu animasi saat terlihat ---
-            // Ini memastikan kartu itu sendiri selalu muncul.
-            whileInView="inView"
-            viewport={{ once: true, amount: 0.3 }}
         >
-            {imgSrc && (
-                <Image
-                    src={imgSrc}
-                    alt={title}
-                    fill // Use fill to cover the parent container
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Helps Next.js pick the right image size
-                    className="object-cover object-top transition-all duration-300"
-                    onLoad={() => setIsLoaded(true)}
-                    style={{ 
-                        opacity: isLoaded ? 1 : 0, 
-                        transform: isLoaded ? 'scale(1)' : 'scale(1.1)',
-                        transition: 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out'
-                    }}
-                />
-            )}
-            {/* Tampilkan overlay dan teks hanya setelah gambar dimuat (atau jika tidak ada gambar) */}
-            {isLoaded && (
-                <motion.div className="absolute inset-0 bg-black bg-opacity-60 rounded-lg" variants={overlayVariants} initial="initial" whileHover="hover" transition={{ duration: 0.3 }}>
-                    <div className="p-6 h-full flex flex-col justify-end">
-                        <motion.h3 className="text-2xl font-bold text-white mb-2" variants={textVariants} transition={{ delay: 0.1 }}>{title}</motion.h3>
-                        <motion.div className="flex flex-wrap gap-2" variants={textVariants} transition={{ delay: 0.2 }}>
-                            {tech.map(t => (<span key={t} className="text-xs bg-gray-200 text-gray-800 px-2 py-1 rounded-full">{t}</span>))}
-                        </motion.div>
+            {/* Image Container with Zoom Effect */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
+                {imgSrc && (
+                    <Image
+                        src={imgSrc}
+                        alt={title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover object-top transition-transform duration-700 ease-in-out group-hover:scale-105"
+                        onLoad={() => setIsLoaded(true)}
+                        style={{
+                            opacity: isLoaded ? 1 : 0,
+                            transition: 'opacity 0.5s ease-in-out'
+                        }}
+                    />
+                )}
+            </div>
+
+            {/* Gradient Overlay - Always present at bottom for text contrast, strengthens on hover */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+
+            {/* Content Container */}
+            <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                {/* Arrow Icon - Top Right (Visible on hover) */}
+                <div className="absolute top-6 right-6 translate-x-4 -translate-y-4 opacity-0 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                    <div className="bg-white text-black p-3 rounded-full shadow-lg">
+                        <ArrowUpRight size={24} />
                     </div>
-                </motion.div>
-            )}
+                </div>
+
+                {/* Text Content - Slides up slightly on hover */}
+                <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="text-2xl font-bold text-white mb-3 leading-tight">{title}</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {tech.map(t => (
+                            <span
+                                key={t}
+                                className="text-xs font-medium bg-white/10 backdrop-blur-sm text-gray-200 px-3 py-1.5 rounded-full border border-white/10"
+                            >
+                                {t}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </motion.div>
     );
 };
 
 export default function ClientHomePage({ data }: { data: any }) {
+    const isMobile = useIsMobile();
     const [isCvVisible, setIsCvVisible] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [activeTab, setActiveTab] = useState<'UI/UX' | 'WEB'>('UI/UX');
     const cvPath = "/assets/cv/Galuh Wikri Ramadhan.pdf";
     const { aboutMe, education, projects } = data;
 
     const handleProjectClick = (project: Project) => {
+        // Jika project memiliki link eksternal (khususnya Web), buka link tersebut
+        if (project.link) {
+            window.open(project.link, '_blank');
+            return;
+        }
+
+        // Jika tidak, buka modal detail seperti biasa (untuk UX Case Study dll)
         if (project.imgSrc) {
             setSelectedProject(project);
         }
@@ -121,11 +150,36 @@ export default function ClientHomePage({ data }: { data: any }) {
                 {/* Hero Section */}
                 <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
                     <ClientOnly>
-                        <div className="absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}>
+                        <div className="hidden lg:block absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}>
                             <Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} />
                         </div>
-                        <div className="w-full max-w-5xl h-56">
-                            <TextPressure text="PORTOFOLIO" />
+                        <div className="relative w-full max-w-5xl h-[500px] md:h-[800px] flex items-center justify-center">
+                            {/* GIF Background with Responsive Mask */}
+                            <div
+                                className="absolute inset-0 z-0 opacity-60"
+                                style={{
+                                    maskImage: isMobile
+                                        ? 'radial-gradient(circle, black 35%, transparent 70%)'
+                                        : 'radial-gradient(ellipse at center, black 10%, transparent 100%)',
+                                    WebkitMaskImage: isMobile
+                                        ? 'radial-gradient(circle, black 35%, transparent 70%)'
+                                        : 'radial-gradient(ellipse at center, black 30%, transparent 44%)'
+                                }}
+                            >
+                                <Image
+                                    src="/giff/mc.gif"
+                                    alt="Background Animation"
+                                    fill
+                                    className="object-contain"
+                                    unoptimized
+                                />
+                            </div>
+
+                            <div className="relative z-10 w-full h-full flex items-center justify-center">
+                                <div className="w-full h-40">
+                                    <TextPressure text="Hello, I’m Galuh." />
+                                </div>
+                            </div>
                         </div>
                     </ClientOnly>
                 </section>
@@ -154,7 +208,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 {aboutMe}
                             </ScrollReveal>
                         </div>
-                        <motion.button onClick={() => setIsCvVisible(true)} className="mt-8 px-6 py-2 border border-gray-500 text-white font-semibold rounded-lg transition-all hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-white" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Lihat CV</motion.button>
+                        <motion.button onClick={() => setIsCvVisible(true)} className="mt-8 px-6 py-2 border border-gray-500 text-white font-semibold rounded-lg transition-all hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-white" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>View Résumé</motion.button>
                     </motion.div>
                 </section>
 
@@ -172,26 +226,21 @@ export default function ClientHomePage({ data }: { data: any }) {
                     </motion.div>
 
                     <motion.div
-                        className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center pt-8"
+                        className="pt-8 w-full"
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: false, amount: 0.2 }}
                         variants={sectionAnimation}
                     >
                         <div>
-                            <h2 className="text-3xl font-bold mb-4">Education</h2>
-                            <div className="flex justify-between items-start font-sans text-lg">
+                            <h2 className="text-3xl font-bold mb-6 border-b border-gray-800 pb-4">Education</h2>
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center font-sans text-lg gap-2">
                                 <div>
-                                    <p className="font-semibold text-white">{education.university}</p>
-                                    <p className="text-gray-400">{education.major}</p>
+                                    <p className="font-semibold text-white text-xl">{education.university}</p>
+                                    <p className="text-[#f2f2f2] opacity-80">{education.major}</p>
                                 </div>
-                                <p className="text-gray-400 text-right">{education.period}</p>
+                                <p className="text-gray-500 font-mono text-sm md:text-base border border-gray-800 px-3 py-1 rounded-full">{education.period}</p>
                             </div>
-                        </div>
-                        <div className="flex gap-6 items-center justify-center md:justify-end">
-                            <motion.a variants={sectionAnimation} href="https://www.instagram.com/galuh.wikri/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white hover:text-gray-400 transition-colors"><svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664 4.771 4.919 4.919C8.416 2.175 8.796 2.163 12 2.163m0-1.802C8.72 0 8.337.012 7.053.072 2.695.272.273 2.69.073 7.052.013 8.337 0 8.72 0 12s.013 3.663.072 4.947c.2 4.358 2.618 6.78 6.98 6.98C8.337 23.988 8.72 24 12 24s3.663-.013 4.947-.072c4.354-.2 6.782-2.618 6.979-6.98.06-1.284.072-1.66.072-4.947s-.012-3.663-.072-4.947c-.197-4.358-2.625-6.78-6.98-6.979C15.663.012 15.28 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z" /></svg></motion.a>
-                            <motion.a variants={sectionAnimation} href="https://github.com/GaluhWikri" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-white hover:text-gray-400 transition-colors"><svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.564 9.564 0 012.503.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.378.203 2.397.1 2.65.64.7 1.03 1.595 1.03 2.688 0 3.848-2.338 4.695-4.566 4.942.359.308.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z" clipRule="evenodd" /></svg></motion.a>
-                            <motion.a variants={sectionAnimation} href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-white hover:text-gray-400 transition-colors"><svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg></motion.a>
                         </div>
                     </motion.div>
                 </section>
@@ -200,38 +249,87 @@ export default function ClientHomePage({ data }: { data: any }) {
                     <motion.h2 className="text-5xl font-bold text-center mb-12" variants={sectionAnimation}>
                         <RotatingText texts={["PROJECTS"]} auto={false} staggerDuration={0.08} />
                     </motion.h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {projects.map((project: Project) => (
-                            <ProjectCard
-                                key={project.title}
-                                title={project.title}
-                                tech={project.tech}
-                                imgSrc={project.imgSrc}
-                                onClick={() => handleProjectClick(project)}
-                            />
+
+                    {/* Tab Selection */}
+                    <div className="flex justify-center gap-6 mb-12">
+                        {['UI/UX', 'WEB'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab as 'UI/UX' | 'WEB')}
+                                className={`px-8 py-3 rounded-full text-sm font-bold tracking-wider transition-all duration-300 border ${activeTab === tab
+                                    ? "bg-[#EAEAEA] text-[#0C0A09] border-[#EAEAEA] scale-105 shadow-[0_0_20px_rgba(234,234,234,0.1)]"
+                                    : "bg-transparent text-[#EAEAEA]/40 border-[#EAEAEA]/10 hover:border-[#EAEAEA]/30 hover:text-[#EAEAEA]"
+                                    }`}
+                            >
+                                {tab}
+                            </button>
                         ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {projects
+                            .filter((project: Project) => project.category === activeTab)
+                            .map((project: Project) => (
+                                <ProjectCard
+                                    key={project.id || project.title}
+                                    title={project.title}
+                                    tech={project.tech}
+                                    imgSrc={project.imgSrc}
+                                    onClick={() => handleProjectClick(project)}
+                                />
+                            ))}
                     </div>
                 </motion.section>
 
-                <motion.section id="contact" className="py-24 text-center max-w-3xl mx-auto" initial="hidden" whileInView="visible" viewport={{ once: false, amount: 0.3 }}>
-                    <motion.h2 className="text-5xl font-bold mb-6" variants={sectionAnimation}>
-                        <RotatingText texts={["CONTACT"]} auto={false} staggerDuration={0.08} />
-                    </motion.h2>
-                    <motion.p className="text-xl text-gray-400 mb-8 font-sans" variants={sectionAnimation} custom={1}>
-                        <RotatingText texts={["Tertarik untuk berkolaborasi? Hubungi saya."]} auto={false} staggerDuration={0.02} splitBy="words" />
-                    </motion.p>
-                    <motion.div variants={sectionAnimation} custom={2}>
-                        <a
-                            href="https://mail.google.com/mail/?view=cm&fs=1&to=galuhwikri05@gmail.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block border border-gray-500 text-white font-bold px-10 py-4 rounded-md transition-all hover:bg-white hover:text-black"
-                        >
-                            <RotatingText texts={["Say Hello"]} auto={false} />
-                        </a>
+                <motion.section id="contact" className="py-24 max-w-4xl mx-auto px-4" initial="hidden" whileInView="visible" viewport={{ once: false, amount: 0.3 }}>
+                    <motion.div
+                        className="bg-[#0C0A09] border border-white/5 rounded-3xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden group"
+                        variants={sectionAnimation}
+                    >
+                        {/* Background Glow */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+                        <motion.div className="relative z-10 flex flex-col items-center gap-6">
+                            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-2 rotate-3 transition-transform group-hover:rotate-6 duration-300 border border-white/10">
+                                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+
+                            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                                Let's Work Together
+                            </h2>
+
+                            <p className="text-gray-400 text-lg md:text-xl max-w-xl leading-relaxed">
+                                Have a project in mind or just want to chat? Feel free to reach out. I'm always open to discussing new ideas and opportunities.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full justify-center">
+                                <a
+                                    href="https://mail.google.com/mail/?view=cm&fs=1&to=galuhwikri05@gmail.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-lg shadow-white/10 flex items-center justify-center gap-2"
+                                >
+                                    <span>Send an Email</span>
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                </a>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText('galuhwikri05@gmail.com');
+                                        alert('Email copied to clipboard!');
+                                    }}
+                                    className="px-8 py-4 bg-transparent border border-white/10 text-white font-medium rounded-full hover:bg-white/5 transition-all flex items-center justify-center gap-2 group/copy"
+                                >
+                                    <svg className="w-5 h-5 text-gray-400 group-hover/copy:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                    <span>Copy Email</span>
+                                </button>
+                            </div>
+                        </motion.div>
                     </motion.div>
                 </motion.section>
             </main>
+            <Footer />
 
             <AnimatePresence>
                 {isCvVisible && (

@@ -4,7 +4,7 @@
 
 :root {
   /* Warna baru sesuai referensi */
-  --background: #0D1117; 
+  --background: #0C0A09;
   --foreground: #EAEAEA;
 }
 
@@ -20,13 +20,11 @@ body {
 }
 
 .spotlight-bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: radial-gradient(
-        350px circle at var(--mouse-x, -100%) var(--mouse-y, -100%),
-        rgba(45, 212, 191, 0.15),
-        transparent 80%
-    );
-    transition: background 0.2s ease-out;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(350px circle at var(--mouse-x, -100%) var(--mouse-y, -100%),
+      rgba(45, 212, 191, 0.15),
+      transparent 80%);
+  transition: background 0.2s ease-out;
 }

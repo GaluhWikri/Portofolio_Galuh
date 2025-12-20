@@ -27,7 +27,7 @@ const SKILLS_LIST = [
 
 function Cloud({ radius = 20, isManualActive }: { radius?: number, isManualActive: boolean }) {
     const groupRef = useRef<THREE.Group>(null!);
-    
+
     // Menyimpan informasi drag (posisi awal dan rotasi awal)
     const dragInfo = useRef<{
         startPointer: { x: number; y: number };
@@ -47,14 +47,14 @@ function Cloud({ radius = 20, isManualActive }: { radius?: number, isManualActiv
             const x = radius * Math.sin(inclination) * Math.cos(azimuth);
             const y = radius * Math.sin(inclination) * Math.sin(azimuth);
             const z = radius * Math.cos(inclination);
-            
+
             return new THREE.Vector3(x, y, z);
         });
     }, [radius]);
 
     useFrame((state, delta) => {
         if (!groupRef.current) return;
-        
+
         // --- PERUBAHAN UTAMA: Logika Drag yang Disederhanakan ---
         if (isManualActive) {
             // Jika mode manual aktif dan ini adalah frame pertama drag
@@ -103,25 +103,25 @@ export default function SkillsCard() {
     const isMobile = useIsMobile();
     // State untuk mengontrol apakah mouse sedang ditekan
     const [isPointerDown, setIsPointerDown] = useState(false);
-    
+
     // Event handler disederhanakan
     const handlePointerDown = () => !isMobile && setIsPointerDown(true);
     const handlePointerUp = () => !isMobile && setIsPointerDown(false);
     const handlePointerOut = () => !isMobile && setIsPointerDown(false);
 
     return (
-        <div 
-            className="bg-gray-800 rounded-2xl h-full relative overflow-hidden cursor-grab active:cursor-grabbing"
+        <div
+            className="bg-[#0C0A09] border border-[#EAEAEA]/10 rounded-2xl h-full relative overflow-hidden cursor-grab active:cursor-grabbing"
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerOut={handlePointerOut} // Menggunakan onPointerOut untuk kasus kursor keluar area
         >
-            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(45, 212, 191, 0.15), transparent 70%)' }} />
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.06), transparent 70%)' }} />
             <div className="relative p-4 w-full h-full flex flex-col justify-center items-center">
-                <h3 className="absolute top-4 left-4 text-xl font-bold z-10">Skills</h3>
+                <h3 className="absolute top-6 left-6 text-3xl font-bold z-10 text-[#ffff]">Skills</h3>
                 <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 35], fov: 90 }}>
-                    <fog attach="fog" args={['#0D1117', 15, 60]} />
-                    <Cloud radius={isMobile ? 14 : 18} isManualActive={isPointerDown} />
+                    <fog attach="fog" args={['#0C0A09', 15, 60]} />
+                    <Cloud radius={isMobile ? 13 : 15} isManualActive={isPointerDown} />
                 </Canvas>
             </div>
         </div>

@@ -16,21 +16,21 @@ interface GitHubStats {
 }
 
 const StatItem = ({ icon, value, label, subLabel }: { icon: React.ReactNode, value: number, label: string, subLabel?: string }) => (
-    <div className="flex items-start gap-3 text-gray-300">
-        <div className="mt-1">{icon}</div>
+    <div className="flex items-center gap-4 text-gray-300">
+        <div className="mt-1 p-2 bg-white/5 rounded-lg">{icon}</div>
         <div>
-            <p className="font-bold text-lg text-white">
-                <AnimatedNumber value={value} /> {subLabel && <span className='text-base'>{subLabel}</span>}
+            <p className="font-bold text-2xl text-white leading-none mb-1">
+                <AnimatedNumber value={value} /> {subLabel && <span className='text-lg text-gray-400'>{subLabel}</span>}
             </p>
-            <p className="text-xs text-gray-400">{label}</p>
+            <p className="text-sm font-medium text-gray-400">{label}</p>
         </div>
     </div>
 );
 
 const GradientStatCard = ({ children, className }: { children: React.ReactNode, className?: string }) => {
     return (
-        <div className={`relative bg-gray-800 rounded-2xl p-6 overflow-hidden ${className}`}>
-            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(45, 212, 191, 0.15), transparent 70%)' }} />
+        <div className={`relative bg-[#0C0A09] border border-[#EAEAEA]/10 rounded-2xl p-6 overflow-hidden ${className}`}>
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 70%)' }} />
             <div className="relative">
                 {children}
             </div>
@@ -75,37 +75,48 @@ const StatsDashboard = () => {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-            <div className="lg:col-span-1 h-96 lg:h-auto lg:row-span-2">
+            {/* Left Column: Skills (Spans 2 rows, takes 2/3 width) */}
+            <div className="lg:col-span-2 h-full min-h-[400px] lg:row-span-2">
                 <SkillsCard />
             </div>
 
-            <GradientStatCard className="lg:col-span-2">
-                <h3 className="text-xl font-bold">Coding Time Since</h3>
-                <p className="text-6xl font-bold text-green-400 mt-4">
-                    <AnimatedNumber value={codingHours} /> <span className="text-3xl text-gray-400">Hrs</span>
+            {/* Right Column Top: Coding Time (Takes 1/3 width) */}
+            <GradientStatCard className="lg:col-span-1 flex flex-col items-center justify-center text-center py-10">
+                <p className="text-7xl lg:text-8xl font-bold mb-2 text-white flex items-baseline gap-2">
+                    <AnimatedNumber value={codingHours} /> <span className="text-3xl font-bold text-white/70">Hrs</span>
                 </p>
-                <p className="text-sm text-gray-500 mt-2">March 2, 2022</p>
+                <div className="text-gray-400 font-medium text-lg">Coding Time Since</div>
+                <div className="text-gray-500 text-sm mt-1">March 2, 2022</div>
             </GradientStatCard>
 
-            <GradientStatCard className="lg:col-span-2">
-                <div className="flex justify-between items-start">
-                    <h3 className="text-xl font-bold">GitHub Stats</h3>
-                    <FaGithub className="w-8 h-8 text-gray-500" />
+            {/* Right Column Bottom: GitHub Stats (Takes 1/3 width) */}
+            <GradientStatCard className="lg:col-span-1">
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 className="text-2xl font-bold text-white mb-1">GitHub Stats</h3>
+                        <p className="text-gray-500 text-xs">Based on real-time data</p>
+                    </div>
+                    <FaGithub className="w-10 h-10 text-white opacity-80" />
                 </div>
+
                 {loading ? (
-                    <p className="text-gray-400 mt-4">Fetching live data from GitHub...</p>
+                    <div className="animate-pulse flex flex-col gap-3">
+                        <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+                        <div className="h-4 bg-gray-700 rounded w-2/3"></div>
+                    </div>
                 ) : error ? (
-                    <p className="text-red-400 mt-4">Error: {error}</p>
+                    <p className="text-red-400">Error: {error}</p>
                 ) : stats ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6 mt-4">
-                        <StatItem icon={<FolderGit2 size={20} />} value={stats.publicRepos} label="Public Repositories" />
-                        <StatItem icon={<GitCommit size={20} />} value={stats.commits} label="Commits" />
-                        <StatItem icon={<GitPullRequest size={20} />} value={stats.pullRequests} label="Pull Requests" />
-                        <StatItem icon={<CircleDot size={20} />} value={stats.issues} label="Issues" />
-                        <StatItem icon={<History size={20} />} value={stats.contributedTo} label="Contributed to" />
+                    <div className="flex flex-col gap-5">
+                        <StatItem icon={<FolderGit2 size={24} className="text-white" />} value={stats.publicRepos} label="Public Repositories" />
+                        <StatItem icon={<GitCommit size={24} className="text-white" />} value={stats.commits} label="Commits (2025)" />
+                        <StatItem icon={<GitPullRequest size={24} className="text-white" />} value={stats.pullRequests} label="Pull Requests" />
+                        <StatItem icon={<CircleDot size={24} className="text-white" />} value={stats.issues} label="Issues" />
+                        <StatItem icon={<History size={24} className="text-white" />} value={stats.contributedTo} label="Contributed to" />
                     </div>
                 ) : (
-                    <p className="text-red-400 mt-4">No stats available.</p>
+                    <p className="text-gray-400">No stats available.</p>
                 )}
             </GradientStatCard>
         </div>
