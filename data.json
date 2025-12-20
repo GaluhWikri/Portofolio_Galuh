@@ -154,6 +154,17 @@
     },
     {
       "id": 9,
+      "title": "rent carpro",
+      "category": "WEB",
+      "tech": [
+        "React",
+        "Tailwind"
+      ],
+      "link": "https://rent-car-pro.vercel.app/",
+      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://rent-car-pro.vercel.app/"
+    },
+    {
+      "id": 10,
       "title": "Reformasi Indonesia",
       "category": "WEB",
       "tech": [
