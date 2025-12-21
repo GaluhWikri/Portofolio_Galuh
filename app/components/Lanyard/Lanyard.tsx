@@ -30,7 +30,7 @@ export default function Lanyard({
 
   // <-- 3. JANGAN RENDER APAPUN JIKA DI MOBILE
   if (isMobile) {
-    return null; 
+    return null;
   }
 
   return (
@@ -82,7 +82,7 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
   const [curve] = useState(() => new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]));
   const [dragged, drag] = useState<false | THREE.Vector3>(false);
   const [hovered, hover] = useState(false);
-  
+
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1]);
   useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1]);

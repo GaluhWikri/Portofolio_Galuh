@@ -77,7 +77,7 @@ const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: st
                         alt={title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover object-top transition-transform duration-700 ease-in-out group-hover:scale-105"
+                        className="object-cover object-top transition-transform duration-700 ease-in-out group-hover:scale-105 will-change-transform"
                         onLoad={() => setIsLoaded(true)}
                         style={{
                             opacity: isLoaded ? 1 : 0,
@@ -123,6 +123,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const [isCvVisible, setIsCvVisible] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [activeTab, setActiveTab] = useState<'UI/UX' | 'WEB'>('UI/UX');
+    const [showToast, setShowToast] = useState(false); // State for custom toast
     const cvPath = "/assets/cv/Galuh Wikri Ramadhan.pdf";
     const { aboutMe, education, projects } = data;
 
@@ -283,49 +284,53 @@ export default function ClientHomePage({ data }: { data: any }) {
 
                 <motion.section id="contact" className="py-24 max-w-4xl mx-auto px-4" initial="hidden" whileInView="visible" viewport={{ once: false, amount: 0.3 }}>
                     <motion.div
-                        className="bg-[#0C0A09] border border-white/5 rounded-3xl p-8 md:p-12 text-center shadow-2xl relative overflow-hidden group"
+                        className="relative bg-[#0C0A09] border border-white/10 rounded-[2.5rem] p-8 md:p-16 overflow-hidden md:text-left text-center"
                         variants={sectionAnimation}
                     >
-                        {/* Background Glow */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                        {/* Decorative Background Elements */}
+                        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
-                        <motion.div className="relative z-10 flex flex-col items-center gap-6">
-                            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-2 rotate-3 transition-transform group-hover:rotate-6 duration-300 border border-white/10">
-                                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
+                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+                            <div className="space-y-6 max-w-2xl">
+                                <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.1]">
+                                    Let's make something <br className="hidden md:block" />
+                                    <span className="text-gray-500">amazing together.</span>
+                                </h2>
+                                <p className="text-gray-400 text-lg md:text-xl leading-relaxed max-w-lg mx-auto md:mx-0">
+                                    Have a project in mind? I'm currently available for freelance work and open to new opportunities. Let's turn your ideas into reality.
+                                </p>
                             </div>
 
-                            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                                Let's Work Together
-                            </h2>
-
-                            <p className="text-gray-400 text-lg md:text-xl max-w-xl leading-relaxed">
-                                Have a project in mind or just want to chat? Feel free to reach out. I'm always open to discussing new ideas and opportunities.
-                            </p>
-
-                            <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full justify-center">
+                            <div className="flex flex-col gap-4 w-full md:w-auto min-w-[240px]">
                                 <a
                                     href="https://mail.google.com/mail/?view=cm&fs=1&to=galuhwikri05@gmail.com"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-lg shadow-white/10 flex items-center justify-center gap-2"
+                                    className="group relative px-8 py-4 bg-white text-black font-bold rounded-full text-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center gap-3"
                                 >
-                                    <span>Send an Email</span>
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                    <span className="relative z-10">Start a project</span>
+                                    <div className="relative z-10 bg-black text-white p-1 rounded-full transition-transform group-hover:rotate-45">
+                                        <ArrowUpRight size={18} />
+                                    </div>
                                 </a>
+
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText('galuhwikri05@gmail.com');
-                                        alert('Email copied to clipboard!');
+                                        setShowToast(true);
+                                        setTimeout(() => setShowToast(false), 2000);
                                     }}
-                                    className="px-8 py-4 bg-transparent border border-white/10 text-white font-medium rounded-full hover:bg-white/5 transition-all flex items-center justify-center gap-2 group/copy"
+                                    className="relative px-8 py-4 bg-white/5 border border-white/10 text-white font-medium rounded-full text-base md:text-lg hover:bg-white/10 transition-all hover:border-white/20 flex items-center justify-center backdrop-blur-sm group/copy"
                                 >
-                                    <svg className="w-5 h-5 text-gray-400 group-hover/copy:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                    <span>Copy Email</span>
+
+                                    <span>galuhwikri05@gmail.com</span>
+                                    <svg className="absolute right-6 w-5 h-5 text-gray-400 group-hover/copy:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
                                 </button>
                             </div>
-                        </motion.div>
+                        </div>
                     </motion.div>
                 </motion.section>
             </main>
@@ -369,11 +374,14 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 </div>
                                 {selectedProject.imgSrc && (
                                     <div className="relative w-full h-auto">
-                                        <img
+                                        <Image
                                             src={selectedProject.imgSrc}
                                             alt={`Tampilan Proyek ${selectedProject.title}`}
+                                            width={1200}
+                                            height={800}
                                             className="object-contain w-full h-auto rounded-lg shadow-2xl"
-                                            loading="lazy"
+                                            priority
+                                            sizes="90vw"
                                         />
                                     </div>
                                 )}
@@ -386,6 +394,27 @@ export default function ClientHomePage({ data }: { data: any }) {
                         >
                             &times;
                         </button>
+                    </motion.div >
+                )
+                }
+            </AnimatePresence >
+
+            {/* Custom Toast Notification */}
+            <AnimatePresence>
+                {showToast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: 20, x: '-50%' }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed bottom-10 left-1/2 z-[70] flex items-center gap-3 px-6 py-3 bg-[#1c1c1c] border border-white/10 rounded-full shadow-2xl backdrop-blur-md"
+                    >
+                        <div className="bg-green-500/20 text-green-400 p-1 rounded-full">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <span className="text-white font-medium text-sm">Email copied to clipboard!</span>
                     </motion.div>
                 )}
             </AnimatePresence>

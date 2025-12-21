@@ -117,7 +117,7 @@
         "Vercel"
       ],
       "link": "https://fake-the-run.vercel.app/",
-      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://fake-the-run.vercel.app/"
+      "imgSrc": "https://image.thum.io/get/maxAge/12/width/700/http://fake-the-run.vercel.app"
     },
     {
       "id": 6,
@@ -128,7 +128,7 @@
         "Webcam API"
       ],
       "link": "https://photo-booth-web.vercel.app/",
-      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://photo-booth-web.vercel.app/"
+      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://photo-booth-web.vercel.app"
     },
     {
       "id": 7,
@@ -139,7 +139,7 @@
         "Creative"
       ],
       "link": "https://click-creative.vercel.app/",
-      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://click-creative.vercel.app/"
+      "imgSrc": "https://image.thum.io/get/maxAge/12/width/700/http://click-creative.vercel.app"
     },
     {
       "id": 8,
@@ -161,7 +161,7 @@
         "Tailwind"
       ],
       "link": "https://rent-car-pro.vercel.app/",
-      "imgSrc": "https://image.thum.io/get/width/1200/crop/800/https://rent-car-pro.vercel.app/"
+      "imgSrc": "https://image.thum.io/get/maxAge/12/width/700/http://rent-car-pro.vercel.app"
     },
     {
       "id": 10,
