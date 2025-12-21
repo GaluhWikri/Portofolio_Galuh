@@ -124,6 +124,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [activeTab, setActiveTab] = useState<'UI/UX' | 'WEB'>('UI/UX');
     const [showToast, setShowToast] = useState(false); // State for custom toast
+    const [isImageLoading, setIsImageLoading] = useState(false); // State for modal image loading
     const cvPath = "/assets/cv/Galuh Wikri Ramadhan.pdf";
     const { aboutMe, education, projects } = data;
 
@@ -135,7 +136,9 @@ export default function ClientHomePage({ data }: { data: any }) {
         }
 
         // Jika tidak, buka modal detail seperti biasa (untuk UX Case Study dll)
+        // Jika tidak, buka modal detail seperti biasa (untuk UX Case Study dll)
         if (project.imgSrc) {
+            setIsImageLoading(true);
             setSelectedProject(project);
         }
     };
@@ -373,15 +376,21 @@ export default function ClientHomePage({ data }: { data: any }) {
                                     </div>
                                 </div>
                                 {selectedProject.imgSrc && (
-                                    <div className="relative w-full h-auto">
+                                    <div className="relative w-full h-auto min-h-[300px] flex items-center justify-center bg-white/5 rounded-lg overflow-hidden">
+                                        {isImageLoading && (
+                                            <div className="absolute inset-0 flex items-center justify-center z-10">
+                                                <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
+                                            </div>
+                                        )}
                                         <Image
                                             src={selectedProject.imgSrc}
                                             alt={`Tampilan Proyek ${selectedProject.title}`}
                                             width={1200}
                                             height={800}
-                                            className="object-contain w-full h-auto rounded-lg shadow-2xl"
+                                            className={`object-contain w-full h-auto rounded-lg shadow-2xl transition-all duration-500 ${isImageLoading ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'}`}
                                             priority
                                             sizes="90vw"
+                                            onLoad={() => setIsImageLoading(false)}
                                         />
                                     </div>
                                 )}
