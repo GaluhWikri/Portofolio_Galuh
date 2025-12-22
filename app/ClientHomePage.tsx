@@ -41,25 +41,14 @@ const sectionAnimation: Variants = {
 
 import { ArrowUpRight } from 'lucide-react';
 
-// Komponen Kartu Proyek (ProjectCard) Modern
-const ProjectCard = ({ title, tech, imgSrc, onClick, priority = false }: {
+// Komponen Kartu Proyek (ProjectCard) Modern - Optimized for instant tab switching
+const ProjectCard = ({ title, tech, imgSrc, onClick }: {
     title: string,
     tech: string[],
     imgSrc: string | null,
-    onClick: () => void,
-    priority?: boolean // Add priority prop for above-fold images
+    onClick: () => void
 }) => {
     const [isLoaded, setIsLoaded] = useState(false);
-
-    // Varian animasi untuk card container
-    const cardVariants: Variants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
-        }
-    };
 
     // Pastikan card tetap dirender jika tidak ada gambar
     useEffect(() => {
@@ -69,10 +58,11 @@ const ProjectCard = ({ title, tech, imgSrc, onClick, priority = false }: {
     return (
         <motion.div
             className="relative rounded-2xl overflow-hidden group h-96 shadow-2xl cursor-pointer bg-[#0C0A09] border border-white/5"
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            layout
             onClick={onClick}
         >
             {/* Image Container with Zoom Effect */}
@@ -83,13 +73,12 @@ const ProjectCard = ({ title, tech, imgSrc, onClick, priority = false }: {
                         alt={title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover object-top transition-transform duration-700 ease-in-out group-hover:scale-105 will-change-transform"
+                        className="object-cover object-top transition-transform duration-700 ease-in-out group-hover:scale-105"
                         onLoad={() => setIsLoaded(true)}
-                        priority={priority} // Priority for above-fold images
-                        loading={priority ? undefined : "lazy"} // Lazy load for below-fold
+                        priority // Always priority to preload all images
                         style={{
                             opacity: isLoaded ? 1 : 0,
-                            transition: 'opacity 0.5s ease-in-out'
+                            transition: 'opacity 0.3s ease-in-out'
                         }}
                     />
                 )}
@@ -144,7 +133,6 @@ export default function ClientHomePage({ data }: { data: any }) {
         }
 
         // Jika tidak, buka modal detail seperti biasa (untuk UX Case Study dll)
-        // Jika tidak, buka modal detail seperti biasa (untuk UX Case Study dll)
         if (project.imgSrc) {
             setIsImageLoading(true);
             setSelectedProject(project);
@@ -153,6 +141,22 @@ export default function ClientHomePage({ data }: { data: any }) {
 
     return (
         <>
+            {/* Hidden Image Preloader - Loads all project images in background */}
+            <div className="hidden">
+                {projects.map((project: Project) => (
+                    project.imgSrc && (
+                        <Image
+                            key={`preload-${project.id}`}
+                            src={project.imgSrc}
+                            alt={`Preload ${project.title}`}
+                            width={1}
+                            height={1}
+                            priority
+                        />
+                    )
+                ))}
+            </div>
+
             <style jsx global>{`
                 .hide-scrollbar::-webkit-scrollbar { display: none; }
                 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -278,20 +282,29 @@ export default function ClientHomePage({ data }: { data: any }) {
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {projects
-                            .filter((project: Project) => project.category === activeTab)
-                            .map((project: Project, index: number) => (
-                                <ProjectCard
-                                    key={project.id || project.title}
-                                    title={project.title}
-                                    tech={project.tech}
-                                    imgSrc={project.imgSrc}
-                                    onClick={() => handleProjectClick(project)}
-                                    priority={index < 3} // Priority load for first 3 cards (above-the-fold)
-                                />
-                            ))}
-                    </div>
+                    {/* Projects Grid with AnimatePresence for smooth transitions */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab} // Key changes on tab switch to trigger animation
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                        >
+                            {projects
+                                .filter((project: Project) => project.category === activeTab)
+                                .map((project: Project) => (
+                                    <ProjectCard
+                                        key={project.id || project.title}
+                                        title={project.title}
+                                        tech={project.tech}
+                                        imgSrc={project.imgSrc}
+                                        onClick={() => handleProjectClick(project)}
+                                    />
+                                ))}
+                        </motion.div>
+                    </AnimatePresence>
                 </motion.section>
 
                 <motion.section id="contact" className="py-24 max-w-4xl mx-auto px-4" initial="hidden" whileInView="visible" viewport={{ once: false, amount: 0.3 }}>
