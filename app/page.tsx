@@ -3,7 +3,10 @@
 import ClientHomePage from './ClientHomePage';
 import { getPortfolioData } from '@/lib/dataFetcher';
 
-export const revalidate = 0; // Memastikan data selalu yang terbaru saat build
+// ISR (Incremental Static Regeneration) - Revalidate setiap 1 jam
+// Halaman akan di-cache dan hanya refetch dari Supabase setiap 3600 detik (1 jam)
+// Ini membuat halaman load INSTANT untuk semua user, sambil tetap update otomatis
+export const revalidate = 3600; // 1 hour cache
 
 /**
  * Main page component

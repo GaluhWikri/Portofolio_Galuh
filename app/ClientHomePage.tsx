@@ -42,7 +42,13 @@ const sectionAnimation: Variants = {
 import { ArrowUpRight } from 'lucide-react';
 
 // Komponen Kartu Proyek (ProjectCard) Modern
-const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: string[], imgSrc: string | null, onClick: () => void }) => {
+const ProjectCard = ({ title, tech, imgSrc, onClick, priority = false }: {
+    title: string,
+    tech: string[],
+    imgSrc: string | null,
+    onClick: () => void,
+    priority?: boolean // Add priority prop for above-fold images
+}) => {
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Varian animasi untuk card container
@@ -79,6 +85,8 @@ const ProjectCard = ({ title, tech, imgSrc, onClick }: { title: string, tech: st
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover object-top transition-transform duration-700 ease-in-out group-hover:scale-105 will-change-transform"
                         onLoad={() => setIsLoaded(true)}
+                        priority={priority} // Priority for above-fold images
+                        loading={priority ? undefined : "lazy"} // Lazy load for below-fold
                         style={{
                             opacity: isLoaded ? 1 : 0,
                             transition: 'opacity 0.5s ease-in-out'
@@ -273,13 +281,14 @@ export default function ClientHomePage({ data }: { data: any }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {projects
                             .filter((project: Project) => project.category === activeTab)
-                            .map((project: Project) => (
+                            .map((project: Project, index: number) => (
                                 <ProjectCard
                                     key={project.id || project.title}
                                     title={project.title}
                                     tech={project.tech}
                                     imgSrc={project.imgSrc}
                                     onClick={() => handleProjectClick(project)}
+                                    priority={index < 3} // Priority load for first 3 cards (above-the-fold)
                                 />
                             ))}
                     </div>
