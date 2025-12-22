@@ -7,25 +7,20 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Billboard, Image as DreiImage } from '@react-three/drei';
 import useIsMobile from '@/app/hooks/useIsMobile';
 
-const SKILLS_LIST = [
-    { name: 'Figma', icon: '/assets/icon/icons8-figma-48.png' },
-    { name: 'Git', icon: '/assets/icon/icons8-git-48.png' },
-    { name: 'Docker', icon: '/assets/icon/icons8-docker-48.png' },
-    { name: 'Canva', icon: '/assets/icon/icons8-canva-48.png' },
-    { name: 'AndroidStudio', icon: '/assets/icon/icons8-android-studio-48.png' },
-    { name: 'Photoshop', icon: '/assets/icon/icons8-photoshop-48.png' },
-    { name: 'MySQL', icon: '/assets/icon/icons8-mysql-48.png' },
-    { name: 'TypeScript', icon: '/assets/icon/icons8-typescript-48.png' },
-    { name: 'VS Code', icon: '/assets/icon/icons8-visual-studio-code-2019-48.png' },
-    { name: 'Postman', icon: '/assets/icon/icons8-postman-inc-50.png' },
-    { name: 'Tailwind', icon: '/assets/icon/icons8-tailwindcss-48.png' },
-    { name: 'PHP', icon: '/assets/icon/icons8-php-50.png' },
-    { name: 'Bootstrap', icon: '/assets/icon/icons8-bootstrap-48.png' },
-    { name: 'ReactJS', icon: '/assets/icon/icons8-react-30.png' },
-    { name: 'NodeJS', icon: '/assets/icon/icons8-node-js-48.png' }
-];
+// Interface for skill item
+interface SkillItem {
+    name: string;
+    icon: string;
+}
 
-function Cloud({ radius = 20, isManualActive }: { radius?: number, isManualActive: boolean }) {
+// Props interface for Cloud component
+interface CloudProps {
+    radius?: number;
+    isManualActive: boolean;
+    skills: SkillItem[];
+}
+
+function Cloud({ radius = 20, isManualActive, skills }: CloudProps) {
     const groupRef = useRef<THREE.Group>(null!);
 
     // Menyimpan informasi drag (posisi awal dan rotasi awal)
@@ -35,7 +30,7 @@ function Cloud({ radius = 20, isManualActive }: { radius?: number, isManualActiv
     } | null>(null);
 
     const points = useMemo(() => {
-        const numPoints = SKILLS_LIST.length;
+        const numPoints = skills.length;
         const goldenRatio = (1 + Math.sqrt(5)) / 2;
         const angleIncrement = Math.PI * 2 * goldenRatio;
 
@@ -50,7 +45,7 @@ function Cloud({ radius = 20, isManualActive }: { radius?: number, isManualActiv
 
             return new THREE.Vector3(x, y, z);
         });
-    }, [radius]);
+    }, [radius, skills]);
 
     useFrame((state, delta) => {
         if (!groupRef.current) return;
@@ -89,7 +84,7 @@ function Cloud({ radius = 20, isManualActive }: { radius?: number, isManualActiv
             {points.map((pos, i) => (
                 <Billboard key={i} position={pos}>
                     <DreiImage
-                        url={SKILLS_LIST[i].icon}
+                        url={skills[i].icon}
                         scale={9}
                         transparent
                     />
@@ -99,7 +94,12 @@ function Cloud({ radius = 20, isManualActive }: { radius?: number, isManualActiv
     );
 }
 
-export default function SkillsCard() {
+// Props interface for SkillsCard
+interface SkillsCardProps {
+    skills?: SkillItem[];
+}
+
+export default function SkillsCard({ skills = [] }: SkillsCardProps) {
     const isMobile = useIsMobile();
     // State untuk mengontrol apakah mouse sedang ditekan
     const [isPointerDown, setIsPointerDown] = useState(false);
@@ -108,6 +108,15 @@ export default function SkillsCard() {
     const handlePointerDown = () => !isMobile && setIsPointerDown(true);
     const handlePointerUp = () => !isMobile && setIsPointerDown(false);
     const handlePointerOut = () => !isMobile && setIsPointerDown(false);
+
+    // Don't render if no skills
+    if (!skills || skills.length === 0) {
+        return (
+            <div className="bg-[#0C0A09] border border-[#EAEAEA]/10 rounded-2xl h-full relative overflow-hidden flex items-center justify-center">
+                <p className="text-gray-500">No skills data available</p>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -121,7 +130,7 @@ export default function SkillsCard() {
                 <h3 className="absolute top-6 left-6 text-3xl font-bold z-10 text-[#ffff]">Skills</h3>
                 <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 35], fov: 90 }}>
                     <fog attach="fog" args={['#0C0A09', 15, 60]} />
-                    <Cloud radius={isMobile ? 13 : 15} isManualActive={isPointerDown} />
+                    <Cloud radius={isMobile ? 13 : 15} isManualActive={isPointerDown} skills={skills} />
                 </Canvas>
             </div>
         </div>

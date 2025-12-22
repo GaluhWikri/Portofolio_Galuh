@@ -126,7 +126,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const [showToast, setShowToast] = useState(false); // State for custom toast
     const [isImageLoading, setIsImageLoading] = useState(false); // State for modal image loading
     const cvPath = "/assets/cv/Galuh Wikri Ramadhan.pdf";
-    const { aboutMe, education, projects } = data;
+    const { aboutMe, education, projects, tools } = data;
 
     const handleProjectClick = (project: Project) => {
         // Jika project memiliki link eksternal (khususnya Web), buka link tersebut
@@ -225,7 +225,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                         variants={sectionAnimation}
                     >
                         <ClientOnly>
-                            <StatsDashboard />
+                            <StatsDashboard skills={tools} />
                         </ClientOnly>
                     </motion.div>
 

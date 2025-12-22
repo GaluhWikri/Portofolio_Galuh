@@ -12,6 +12,13 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        // Supabase Storage - untuk skills icons & project images
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
 

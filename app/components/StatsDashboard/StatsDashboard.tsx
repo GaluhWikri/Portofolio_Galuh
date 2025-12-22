@@ -15,6 +15,15 @@ interface GitHubStats {
     contributedTo: number;
 }
 
+interface SkillItem {
+    name: string;
+    icon: string;
+}
+
+interface StatsDashboardProps {
+    skills?: SkillItem[];
+}
+
 const StatItem = ({ icon, value, label, subLabel }: { icon: React.ReactNode, value: number, label: string, subLabel?: string }) => (
     <div className="flex items-center gap-4 text-gray-300">
         <div className="mt-1 p-2 bg-white/5 rounded-lg">{icon}</div>
@@ -38,7 +47,7 @@ const GradientStatCard = ({ children, className }: { children: React.ReactNode, 
     );
 };
 
-const StatsDashboard = () => {
+const StatsDashboard = ({ skills = [] }: StatsDashboardProps) => {
     const [stats, setStats] = useState<GitHubStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -77,7 +86,7 @@ const StatsDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
             {/* Left Column: Skills (Spans 2 rows, takes 2/3 width) */}
             <div className="lg:col-span-2 h-full min-h-[400px] lg:row-span-2">
-                <SkillsCard />
+                <SkillsCard skills={skills} />
             </div>
 
             {/* Right Column Top: Coding Time (Takes 1/3 width) */}
