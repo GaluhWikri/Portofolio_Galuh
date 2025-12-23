@@ -4,10 +4,10 @@ import ClientHomePage from './ClientHomePage';
 import { getPortfolioData } from '@/lib/dataFetcher';
 
 // ISR (Incremental Static Regeneration)
-// Development: Revalidate setiap 30 detik (untuk testing cepat)
-// Production: Revalidate setiap 1 jam (untuk performa optimal)
-// Untuk update instant, gunakan: http://localhost:3000/api/revalidate?secret=dev123
-export const revalidate = process.env.NODE_ENV === 'development' ? 30 : 3600;
+// Auto-revalidate every 1 hour (3600 seconds)
+// For instant updates, use the revalidate API: /api/revalidate?secret=YOUR_SECRET
+// This works in both development and production
+export const revalidate = 3600; // 1 hour
 
 /**
  * Main page component
