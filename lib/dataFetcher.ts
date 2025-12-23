@@ -74,6 +74,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     tech: project.tech,
                     imgSrc: project.image_url, // Map image_url to imgSrc for compatibility
                     link: project.link,
+                    description: project.description,
                 }));
             } else {
                 console.log('⚠️ No projects from Supabase, using local data.json');
@@ -139,6 +140,7 @@ export async function getProjectsData(): Promise<Project[]> {
             tech: project.tech,
             imgSrc: project.image_url,
             link: project.link,
+            description: project.description,
         }));
     } catch (error) {
         console.error('Error fetching projects:', error);

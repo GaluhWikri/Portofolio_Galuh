@@ -1,15 +1,24 @@
-// Example Component: Projects Section dengan Supabase (Server Component)
+'use client';
+
+// Optimized Projects Section with Performance Enhancements
 // Path: app/components/Projects/ProjectsSection.tsx
 
-import { getProjects, type Project } from '@/lib/supabase';
+import { type Project } from '@/lib/supabase';
 import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProjectCardProps {
     project: Project;
+    index: number;
 }
 
-function ProjectCard({ project }: ProjectCardProps) {
+function ProjectCard({ project, index }: ProjectCardProps) {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    // Priority untuk 6 gambar pertama (2 baris di desktop)
+    const shouldPrioritize = index < 6;
+
     const handleClick = () => {
         if (project.link) {
             window.open(project.link, '_blank');
@@ -21,6 +30,11 @@ function ProjectCard({ project }: ProjectCardProps) {
             onClick={handleClick}
             className="relative rounded-2xl overflow-hidden group h-96 shadow-2xl cursor-pointer bg-[#0C0A09] border border-white/5 hover:border-white/20 transition-all"
         >
+            {/* Loading Skeleton */}
+            {!isLoaded && (
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 animate-pulse" />
+            )}
+
             {/* Image Container */}
             <div className="absolute inset-0 w-full h-full overflow-hidden">
                 <Image
@@ -28,7 +42,12 @@ function ProjectCard({ project }: ProjectCardProps) {
                     alt={project.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover object-top transition-transform duration-700 ease-in-out group-hover:scale-105"
+                    className={`object-cover object-top transition-all duration-700 ease-in-out group-hover:scale-105 ${isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
+                        }`}
+                    priority={shouldPrioritize}
+                    loading={shouldPrioritize ? undefined : 'lazy'}
+                    onLoad={() => setIsLoaded(true)}
+                    quality={85}
                 />
             </div>
 
@@ -70,13 +89,14 @@ function ProjectCard({ project }: ProjectCardProps) {
     );
 }
 
-export default async function ProjectsSection() {
-    // Fetch all projects from Supabase
-    const allProjects = await getProjects();
+interface ProjectsSectionProps {
+    projects: Project[];
+}
 
+export default function ProjectsSection({ projects }: ProjectsSectionProps) {
     // Separate by category
-    const uiuxProjects = allProjects.filter((p) => p.category === 'UI/UX');
-    const webProjects = allProjects.filter((p) => p.category === 'WEB');
+    const uiuxProjects = projects.filter((p) => p.category === 'UI/UX');
+    const webProjects = projects.filter((p) => p.category === 'WEB');
 
     return (
         <section id="project" className="py-24 max-w-7xl mx-auto px-4">
@@ -91,8 +111,8 @@ export default async function ProjectsSection() {
                         UI/UX Design
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {uiuxProjects.map((project) => (
-                            <ProjectCard key={project.id} project={project} />
+                        {uiuxProjects.map((project, index) => (
+                            <ProjectCard key={project.id} project={project} index={index} />
                         ))}
                     </div>
                 </div>
@@ -105,15 +125,15 @@ export default async function ProjectsSection() {
                         Web Development
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {webProjects.map((project) => (
-                            <ProjectCard key={project.id} project={project} />
+                        {webProjects.map((project, index) => (
+                            <ProjectCard key={project.id} project={project} index={index + uiuxProjects.length} />
                         ))}
                     </div>
                 </div>
             )}
 
             {/* Empty State */}
-            {allProjects.length === 0 && (
+            {projects.length === 0 && (
                 <div className="text-center py-16">
                     <p className="text-gray-400 text-lg">No projects found.</p>
                 </div>

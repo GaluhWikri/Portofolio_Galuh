@@ -50,9 +50,12 @@ const ProjectCard = ({ title, tech, imgSrc, onClick, index }: {
     index: number
 }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+    const [hasError, setHasError] = useState(false);
 
     // Pastikan card tetap dirender jika tidak ada gambar
     useEffect(() => {
+        setIsMounted(true);
         if (!imgSrc) setIsLoaded(true);
     }, [imgSrc]);
 
@@ -68,6 +71,23 @@ const ProjectCard = ({ title, tech, imgSrc, onClick, index }: {
             transition={{ duration: 0.15, ease: "easeOut" }}
             onClick={onClick}
         >
+            {/* Skeleton Loading - Always rendered, opacity-based to avoid hydration issues */}
+            <div
+                className="absolute inset-0 bg-gradient-to-br from-gray-800/40 to-gray-900/60 transition-opacity duration-300"
+                style={{
+                    opacity: (!isLoaded && imgSrc && isMounted) ? 1 : 0,
+                    pointerEvents: isLoaded ? 'none' : 'auto'
+                }}
+            >
+                <div className="absolute bottom-6 left-6 right-6 space-y-3 animate-pulse">
+                    <div className="h-6 bg-gray-700/50 rounded w-3/4" />
+                    <div className="flex gap-2">
+                        <div className="h-6 bg-gray-700/30 rounded-full w-16" />
+                        <div className="h-6 bg-gray-700/30 rounded-full w-20" />
+                    </div>
+                </div>
+            </div>
+
             {/* Image Container with Zoom Effect */}
             <div className="absolute inset-0 w-full h-full overflow-hidden">
                 {imgSrc && (
@@ -78,6 +98,11 @@ const ProjectCard = ({ title, tech, imgSrc, onClick, index }: {
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
                         onLoad={() => setIsLoaded(true)}
+                        onError={(e) => {
+                            console.error(`Failed to load image for ${title}:`, imgSrc);
+                            setHasError(true);
+                            setIsLoaded(true); // Hide skeleton even on error
+                        }}
                         priority={shouldPrioritize}
                         loading={shouldPrioritize ? undefined : "lazy"}
                         style={{
