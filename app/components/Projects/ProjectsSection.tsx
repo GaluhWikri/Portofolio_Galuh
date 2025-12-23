@@ -19,6 +19,26 @@ function ProjectCard({ project, index }: ProjectCardProps) {
     // Priority untuk 6 gambar pertama (2 baris di desktop)
     const shouldPrioritize = index < 6;
 
+    // Blur placeholder untuk smooth loading di production
+    const shimmer = (w: number, h: number) => `
+        <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs>
+                <linearGradient id="g">
+                    <stop stop-color="#1a1a1a" offset="20%" />
+                    <stop stop-color="#2a2a2a" offset="50%" />
+                    <stop stop-color="#1a1a1a" offset="70%" />
+                </linearGradient>
+            </defs>
+            <rect width="${w}" height="${h}" fill="#1a1a1a" />
+            <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
+            <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
+        </svg>`;
+
+    const toBase64 = (str: string) =>
+        typeof window === 'undefined'
+            ? Buffer.from(str).toString('base64')
+            : window.btoa(str);
+
     const handleClick = () => {
         if (project.link) {
             window.open(project.link, '_blank');
@@ -28,7 +48,8 @@ function ProjectCard({ project, index }: ProjectCardProps) {
     return (
         <div
             onClick={handleClick}
-            className="relative rounded-2xl overflow-hidden group h-96 shadow-2xl cursor-pointer bg-[#0C0A09] border border-white/5 hover:border-white/20 transition-all"
+            className="relative rounded-2xl overflow-hidden group h-96 shadow-2xl cursor-pointer bg-[#0C0A09] border border-white/5 hover:border-white/20 transition-colors duration-200"
+            style={{ willChange: 'border-color' }}
         >
             {/* Loading Skeleton */}
             {!isLoaded && (
@@ -42,29 +63,41 @@ function ProjectCard({ project, index }: ProjectCardProps) {
                     alt={project.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className={`object-cover object-top transition-all duration-700 ease-in-out group-hover:scale-105 ${isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
+                    className={`object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105 ${isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
                         }`}
+                    style={{ willChange: 'transform' }}
                     priority={shouldPrioritize}
                     loading={shouldPrioritize ? undefined : 'lazy'}
                     onLoad={() => setIsLoaded(true)}
                     quality={85}
+                    placeholder="blur"
+                    blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(700, 475))}`}
                 />
             </div>
 
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+            <div
+                className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-200"
+                style={{ willChange: 'opacity' }}
+            />
 
             {/* Content */}
             <div className="absolute inset-0 p-6 flex flex-col justify-end">
                 {/* Arrow Icon */}
-                <div className="absolute top-6 right-6 translate-x-4 -translate-y-4 opacity-0 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                <div
+                    className="absolute top-6 right-6 translate-x-4 -translate-y-4 opacity-0 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-200 ease-out"
+                    style={{ willChange: 'transform, opacity' }}
+                >
                     <div className="bg-white text-black p-3 rounded-full shadow-lg">
                         <ArrowUpRight size={24} />
                     </div>
                 </div>
 
                 {/* Text Content */}
-                <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                <div
+                    className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-200 ease-out"
+                    style={{ willChange: 'transform' }}
+                >
                     <h3 className="text-2xl font-bold text-white mb-3 leading-tight">
                         {project.title}
                     </h3>

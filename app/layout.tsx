@@ -6,7 +6,7 @@ import "./globals.css";
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-primary", 
+  variable: "--font-primary",
 });
 
 // --- PERUBAHAN UTAMA DI SINI ---
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description: "Modern Portfolio",
   icons: {
     // Menunjuk ke file favicon.ico di direktori /public
-    icon: '/favicon.ico', 
+    icon: '/favicon.ico',
   },
 };
 
@@ -27,6 +27,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preconnect ke Supabase untuk loading lebih cepat */}
+        <link rel="preconnect" href="https://ckigmwpqcsejndvfimkr.supabase.co" />
+        <link rel="dns-prefetch" href="https://ckigmwpqcsejndvfimkr.supabase.co" />
+      </head>
       <body className={`${interTight.variable} font-sans antialiased`}>
         {children}
       </body>

@@ -28,3 +28,17 @@ body {
       transparent 80%);
   transition: background 0.2s ease-out;
 }
+
+/* Optimisasi untuk smooth animations di production */
+@layer utilities {
+  .gpu-accelerate {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .smooth-transform {
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+}

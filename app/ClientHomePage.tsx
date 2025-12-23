@@ -151,6 +151,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const [activeTab, setActiveTab] = useState<'UI/UX' | 'WEB'>('UI/UX');
     const [showToast, setShowToast] = useState(false); // State for custom toast
     const [isImageLoading, setIsImageLoading] = useState(false); // State for modal image loading
+    const [isGifLoaded, setIsGifLoaded] = useState(false); // State for GIF background loading
     const cvPath = "/assets/cv/Galuh Wikri Ramadhan.pdf";
     const { aboutMe, education, projects, tools } = data;
 
@@ -183,16 +184,18 @@ export default function ClientHomePage({ data }: { data: any }) {
                             <Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} />
                         </div>
                         <div className="relative w-full max-w-5xl h-[500px] md:h-[800px] flex items-center justify-center">
-                            {/* GIF Background with Responsive Mask */}
+                            {/* GIF Background with Responsive Mask and Fade In Animation */}
                             <div
-                                className="absolute inset-0 z-0 opacity-60"
+                                className={`absolute inset-0 z-0 transition-all duration-1000 ease-out ${isGifLoaded ? 'opacity-60 scale-100' : 'opacity-0 scale-95'
+                                    }`}
                                 style={{
                                     maskImage: isMobile
                                         ? 'radial-gradient(circle, black 35%, transparent 70%)'
                                         : 'radial-gradient(ellipse at center, black 10%, transparent 100%)',
                                     WebkitMaskImage: isMobile
                                         ? 'radial-gradient(circle, black 35%, transparent 70%)'
-                                        : 'radial-gradient(ellipse at center, black 30%, transparent 44%)'
+                                        : 'radial-gradient(ellipse at center, black 30%, transparent 44%)',
+                                    willChange: 'opacity, transform'
                                 }}
                             >
                                 <Image
@@ -201,12 +204,14 @@ export default function ClientHomePage({ data }: { data: any }) {
                                     fill
                                     className="object-contain"
                                     unoptimized
+                                    onLoad={() => setIsGifLoaded(true)}
+                                    priority
                                 />
                             </div>
 
                             <div className="relative z-10 w-full h-full flex items-center justify-center">
                                 <div className="w-full h-40">
-                                    <TextPressure text="Hello, I’m Galuh." />
+                                    <TextPressure text="Hello, I'm Galuh." />
                                 </div>
                             </div>
                         </div>
