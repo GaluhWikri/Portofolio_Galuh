@@ -180,9 +180,9 @@ export default function ClientHomePage({ data }: { data: any }) {
                 {/* Hero Section */}
                 <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
                     <ClientOnly>
-                        <div className="hidden lg:block absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}>
+                        {/* <div className="hidden lg:block absolute top-0 right-[-100px] lg:right-[-200px] w-[400px] md:w-[700px] lg:w-[900px] h-full z-10" style={{ transform: 'translateY(-10%)' }}>
                             <Lanyard position={[0, 0, 14]} gravity={[0, -40, 0]} />
-                        </div>
+                        </div> */}
                         <div className="relative w-full max-w-5xl h-[500px] md:h-[800px] flex items-center justify-center">
                             {/* GIF Background with Responsive Mask and Fade In Animation */}
                             <div
