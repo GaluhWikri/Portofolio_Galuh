@@ -1,21 +1,25 @@
 // app/layout.tsx
 
 import type { Metadata } from "next";
-import { Inter_Tight } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const interTight = Inter_Tight({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-primary",
+  display: "swap",
 });
 
-// --- PERUBAHAN UTAMA DI SINI ---
-// Menambahkan properti 'icons' untuk menampilkan favicon.ico
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Portfolio",
-  description: "Modern Portfolio",
+  title: "Galuh Wikri - Portfolio",
+  description: "Portfolio of Galuh Wikri - UI/UX Designer and Frontend Developer crafting digital experiences that matter.",
   icons: {
-    // Menunjuk ke file favicon.ico di direktori /public
     icon: '/favicon.ico',
   },
 };
@@ -28,11 +32,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preconnect ke Supabase untuk loading lebih cepat */}
         <link rel="preconnect" href="https://ckigmwpqcsejndvfimkr.supabase.co" />
         <link rel="dns-prefetch" href="https://ckigmwpqcsejndvfimkr.supabase.co" />
       </head>
-      <body className={`${interTight.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         {children}
       </body>
     </html>
