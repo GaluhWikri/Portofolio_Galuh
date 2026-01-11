@@ -627,13 +627,13 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             <div className="contact-card-divider"></div>
 
                                             <div className="social-links-grid">
-                                                <a href="https://github.com/GaluhWikworjoyo" target="_blank" rel="noopener noreferrer" className="social-link-box">
+                                                <a href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" className="social-link-box">
                                                     <FaGithub size={22} />
                                                 </a>
                                                 <a href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" className="social-link-box">
                                                     <FaLinkedinIn size={22} />
                                                 </a>
-                                                <a href="https://www.instagram.com/galuhwkr/" target="_blank" rel="noopener noreferrer" className="social-link-box">
+                                                <a href="https://www.instagram.com/galuh.wikri/" target="_blank" rel="noopener noreferrer" className="social-link-box">
                                                     <FaInstagram size={22} />
                                                 </a>
                                             </div>
