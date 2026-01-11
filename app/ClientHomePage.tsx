@@ -616,7 +616,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                 </div>
                                                 <div className="contact-info-item">
                                                     <Phone size={18} />
-                                                    <span>+62 812 3456 7890</span>
+                                                    <span>+62 812 **** ****</span>
                                                 </div>
                                             </div>
                                         </div>
