@@ -1592,3 +1592,18 @@ body {
     overflow: visible;
   }
 }
+
+/* Mobile adjustments for Stats Card */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 0.75rem;
+    /* Reduced padding */
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+    /* Significantly reduced font size */
+    word-break: break-all;
+    /* Prevent overflow if number is huge */
+  }
+}
