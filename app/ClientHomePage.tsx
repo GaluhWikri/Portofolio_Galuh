@@ -160,7 +160,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
 
     const { aboutMe, education, projects, tools } = data;
-    const cvPath = '/assets/cv/Galuh Wikri Ramadhan.pdf';
+    const cvPath = '/assets/cv/Galuh Wikri Ramadhan_cv.pdf';
 
     // Scroll spy effect
     useEffect(() => {
