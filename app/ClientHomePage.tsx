@@ -151,6 +151,11 @@ export default function ClientHomePage({ data }: { data: any }) {
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    // Contact form states
+    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+    const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [formMessage, setFormMessage] = useState('');
+
     const contentRef = useRef<HTMLDivElement>(null);
     const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
 
@@ -558,13 +563,46 @@ export default function ClientHomePage({ data }: { data: any }) {
                                         <h3 className="contact-card-title">SEND MESSAGE_</h3>
                                         <div className="contact-card-divider"></div>
 
-                                        <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+                                        <form className="contact-form" onSubmit={async (e) => {
+                                            e.preventDefault();
+                                            if (formStatus === 'loading') return;
+
+                                            setFormStatus('loading');
+                                            setFormMessage('');
+
+                                            try {
+                                                const response = await fetch('/api/send-email', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify(formData),
+                                                });
+
+                                                const result = await response.json();
+
+                                                if (response.ok) {
+                                                    setFormStatus('success');
+                                                    setFormMessage('Pesan berhasil dikirim! 🎉');
+                                                    setFormData({ name: '', email: '', message: '' });
+                                                    setTimeout(() => setFormStatus('idle'), 5000);
+                                                } else {
+                                                    setFormStatus('error');
+                                                    setFormMessage(result.error || 'Gagal mengirim pesan');
+                                                }
+                                            } catch (error) {
+                                                setFormStatus('error');
+                                                setFormMessage('Terjadi kesalahan. Silakan coba lagi.');
+                                            }
+                                        }}>
                                             <div className="form-group">
                                                 <label className="form-label">NAME</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Your name..."
                                                     className="form-input"
+                                                    value={formData.name}
+                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                    required
+                                                    disabled={formStatus === 'loading'}
                                                 />
                                             </div>
 
@@ -574,6 +612,10 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                     type="email"
                                                     placeholder="your@email.com"
                                                     className="form-input"
+                                                    value={formData.email}
+                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                    required
+                                                    disabled={formStatus === 'loading'}
                                                 />
                                             </div>
 
@@ -583,18 +625,37 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                     placeholder="Your message..."
                                                     className="form-textarea"
                                                     rows={5}
+                                                    value={formData.message}
+                                                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                                    required
+                                                    disabled={formStatus === 'loading'}
                                                 ></textarea>
                                             </div>
 
-                                            <a
-                                                href="https://mail.google.com/mail/?view=cm&fs=1&to=galuhwikri05@gmail.com"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
+                                            {/* Status Message */}
+                                            {formMessage && (
+                                                <div className={`form-status ${formStatus === 'success' ? 'success' : 'error'}`}>
+                                                    {formMessage}
+                                                </div>
+                                            )}
+
+                                            <button
+                                                type="submit"
                                                 className="send-button"
+                                                disabled={formStatus === 'loading'}
                                             >
-                                                <Mail size={18} />
-                                                <span>SEND MESSAGE</span>
-                                            </a>
+                                                {formStatus === 'loading' ? (
+                                                    <>
+                                                        <span className="loading-spinner"></span>
+                                                        <span>SENDING...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Mail size={18} />
+                                                        <span>SEND MESSAGE</span>
+                                                    </>
+                                                )}
+                                            </button>
                                         </form>
                                     </div>
 

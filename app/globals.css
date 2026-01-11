@@ -1462,6 +1462,57 @@ body {
   box-shadow: 2px 2px 0px var(--color-gray-600);
 }
 
+.send-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-gray-400);
+  border-top-color: var(--color-white);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Form Input Disabled State */
+.form-input:disabled,
+.form-textarea:disabled {
+  background: var(--color-gray-100);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Form Status Message */
+.form-status {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 2px solid var(--color-black);
+}
+
+.form-status.success {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #065f46;
+}
+
+.form-status.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #991b1b;
+}
+
 /* Right Column */
 .contact-right-column {
   display: flex;
