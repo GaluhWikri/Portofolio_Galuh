@@ -688,7 +688,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             <div className="contact-card-divider"></div>
 
                                             <div className="social-links-grid">
-                                                <a href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" className="social-link-box">
+                                                <a href="https://github.com/GaluhWikri" target="_blank" rel="noopener noreferrer" className="social-link-box">
                                                     <FaGithub size={22} />
                                                 </a>
                                                 <a href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" className="social-link-box">
