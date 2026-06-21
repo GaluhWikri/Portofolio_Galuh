@@ -464,7 +464,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                         <section
                             id="experience"
                             ref={(el) => { sectionRefs.current['experience'] = el; }}
-                            className="section bg-white"
+                            className="section"
                             style={{ minHeight: 'auto', paddingBottom: '4rem' }}
                         >
                             <motion.div
@@ -557,7 +557,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                         <section
                             id="skills"
                             ref={(el) => { sectionRefs.current['skills'] = el; }}
-                            className="section bg-white"
+                            className="section"
                         >
                             <motion.div
                                 initial={{ opacity: 0 }}
@@ -590,7 +590,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                         <section
                             id="contact"
                             ref={(el) => { sectionRefs.current['contact'] = el; }}
-                            className="section bg-white"
+                            className="section"
                             style={{ minHeight: 'auto' }}
                         >
                             <motion.div
