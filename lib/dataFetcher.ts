@@ -27,6 +27,12 @@ interface PortfolioData {
         major: string;
         period: string;
     };
+    experience?: {
+        company: string;
+        position: string;
+        period: string;
+        description: string;
+    }[];
     tools: Tool[];
     projects: Project[];
 }
@@ -91,6 +97,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
         return {
             aboutMe: localData.aboutMe,
             education: localData.education,
+            experience: localData.experience,
             tools,
             projects,
         };
@@ -101,6 +108,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
         return {
             aboutMe: 'Failed to load data. Please check your configuration.',
             education: { university: '', major: '', period: '' },
+            experience: [],
             tools: [],
             projects: [],
         };

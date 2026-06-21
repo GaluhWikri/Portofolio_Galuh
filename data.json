@@ -5,6 +5,20 @@
     "major": "Informatic Engineering",
     "period": "October 2022 - Present"
   },
+  "experience": [
+    {
+      "company": "GDGOC Universitas Pasundan",
+      "position": "UI/UX Design Core Team",
+      "period": "Jul 2024 - May 2025",
+      "description": "I created and developed UI/UX learning materials for club members, covering key topics like user research, wireframing, and prototyping. I also led study groups and collaborated with the curriculum team to design a syllabus aligned with current industry trends."
+    },
+    {
+      "company": "Badan Riset dan Inovasi Nasional RI (BRIN RI)",
+      "position": "UI/UX Design",
+      "period": "Jul 2025 - Oct 2025",
+      "description": "Besigned and developed the UI/UX for a city-scale Digital Twin web platform that visualizes ood runoff height simulations and identi es impacted areas in real-time. The interface focuses on clarity, interactivity, and data-driven insights to support urban planning and disaster mitigation efforts."
+    }
+  ],
   "tools": [
     {
       "name": "Figma",

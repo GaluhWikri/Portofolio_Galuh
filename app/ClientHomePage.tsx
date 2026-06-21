@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { ArrowUpRight, Download, Mail, ExternalLink, Copy, Check, MapPin, Phone, User, FolderOpen, Zap, Home, Menu, X } from 'lucide-react';
+import { ArrowUpRight, Download, Mail, ExternalLink, Copy, Check, MapPin, Phone, User, FolderOpen, Zap, Home, Menu, X, Briefcase } from 'lucide-react';
 import { FaGithub, FaLinkedinIn, FaInstagram, FaDribbble } from 'react-icons/fa';
 import InteractiveBackground from './components/InteractiveBackground/InteractiveBackground';
 import ClientOnly from './components/ClientOnly';
@@ -39,9 +39,10 @@ interface NavItem {
 const navItems: NavItem[] = [
     { id: 'home', label: 'HOME', number: '01', icon: <Home size={18} /> },
     { id: 'about', label: 'ABOUT ME', number: '02', icon: <User size={18} /> },
-    { id: 'projects', label: 'PROJECTS', number: '03', icon: <FolderOpen size={18} /> },
-    { id: 'skills', label: 'SKILLS', number: '04', icon: <Zap size={18} /> },
-    { id: 'contact', label: 'CONTACT', number: '05', icon: <Mail size={18} /> },
+    { id: 'experience', label: 'EXPERIENCE', number: '03', icon: <Briefcase size={18} /> },
+    { id: 'projects', label: 'PROJECTS', number: '04', icon: <FolderOpen size={18} /> },
+    { id: 'skills', label: 'SKILLS', number: '05', icon: <Zap size={18} /> },
+    { id: 'contact', label: 'CONTACT', number: '06', icon: <Mail size={18} /> },
 ];
 
 // Neo-Brutalism Project Card Component
@@ -159,7 +160,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const contentRef = useRef<HTMLDivElement>(null);
     const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
 
-    const { aboutMe, education, projects, tools } = data;
+    const { aboutMe, education, experience, projects, tools } = data;
     const cvPath = '/assets/cv/Galuh Wikri Ramadhan_cv.pdf';
 
     // Scroll spy effect
@@ -425,6 +426,8 @@ export default function ClientHomePage({ data }: { data: any }) {
                                     </div>
                                 </div>
 
+
+
                                 {/* Quick Stats */}
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
                                     <div className="stats-card">
@@ -446,6 +449,46 @@ export default function ClientHomePage({ data }: { data: any }) {
                                         <p className="stat-label">Tools</p>
                                     </div>
                                 </div>
+                            </motion.div>
+                        </section>
+
+                        {/* Experience Section */}
+                        <section
+                            id="experience"
+                            ref={(el) => { sectionRefs.current['experience'] = el; }}
+                            className="section bg-white"
+                            style={{ minHeight: 'auto', paddingBottom: '4rem' }}
+                        >
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                viewport={{ once: true, amount: 0.1 }}
+                                transition={{ duration: 0.6 }}
+                            >
+                                <h2 className="section-title">Experience</h2>
+                                {experience && experience.length > 0 ? (
+                                    <div className="flex flex-col gap-6">
+                                        {experience.map((exp: any, index: number) => (
+                                            <div key={index} className="neo-card hover:-translate-y-1 transition-transform duration-300">
+                                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                                                    <div>
+                                                        <h3 className="text-2xl font-black uppercase text-black">{exp.position}</h3>
+                                                        <p className="text-xl font-bold text-gray-600 mt-1">{exp.company}</p>
+                                                    </div>
+                                                    <span className="inline-block px-5 py-2 border-2 border-black bg-black text-white text-sm font-mono uppercase shadow-[4px_4px_0px_#ccc]">
+                                                        {exp.period}
+                                                    </span>
+                                                </div>
+                                                <div className="w-full h-0.5 bg-gray-200 my-4"></div>
+                                                <p className="text-lg text-gray-700 leading-relaxed">
+                                                    {exp.description}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xl text-gray-500 italic">No experience added yet.</p>
+                                )}
                             </motion.div>
                         </section>
 
