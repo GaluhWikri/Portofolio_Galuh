@@ -22,6 +22,8 @@ interface Project {
     imgSrc: string | null;
     category: string;
     link?: string;
+    description?: string;
+    github?: string;
 }
 
 interface SkillItem {
@@ -205,6 +207,12 @@ export default function ClientHomePage({ data }: { data: any }) {
 
     // Project click handler
     const handleProjectClick = (project: Project) => {
+        if (project.category === 'WEB') {
+            setIsImageLoading(true);
+            setSelectedProject(project);
+            return;
+        }
+
         if (project.link) {
             window.open(project.link, '_blank');
             return;
@@ -845,35 +853,62 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 initial={{ scale: 0.9, y: 50 }}
                                 animate={{ scale: 1, y: 0 }}
                                 exit={{ scale: 0.9, y: 50 }}
-                                className="modal-content p-0"
-                                style={{ maxHeight: '90vh' }}
+                                className="modal-content p-0 overflow-y-auto modal-scrollbar bg-white border-4 border-black shadow-[8px_8px_0px_#000]"
+                                style={{ maxHeight: '85vh', maxWidth: '800px', width: '90%' }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="p-6 border-b-3 border-black">
-                                    <h2 className="text-2xl font-bold uppercase mb-2">{selectedProject.title}</h2>
-                                    <div className="flex flex-wrap gap-2">
+                                <div className="p-8 border-b-4 border-black">
+                                    <h2 className="text-4xl font-black uppercase mb-4 tracking-tight">{selectedProject.title}</h2>
+                                    <div className="flex flex-wrap gap-2 mb-6">
                                         {selectedProject.tech.map((t) => (
-                                            <span key={t} className="project-tag">{t}</span>
+                                            <span key={t} className="project-tag px-4 py-2 bg-gray-100 border-2 border-black font-bold text-sm uppercase shadow-[2px_2px_0px_#000]">{t}</span>
                                         ))}
+                                    </div>
+                                    
+                                    {selectedProject.description && (
+                                        <div className="mb-6 p-5 bg-[#FAFAFA] border-2 border-black border-dashed">
+                                            <p className="text-black text-lg leading-relaxed font-medium">{selectedProject.description}</p>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        {selectedProject.link && (
+                                            <a href={selectedProject.link} target="_blank" rel="noopener noreferrer" className="neo-button flex-1 justify-center py-4 text-lg">
+                                                <ExternalLink size={20} />
+                                                <span>View Live Project</span>
+                                            </a>
+                                        )}
+                                        {selectedProject.github ? (
+                                            <a href={selectedProject.github} target="_blank" rel="noopener noreferrer" className="neo-button neo-button-dark flex-1 justify-center py-4 text-lg">
+                                                <FaGithub size={20} />
+                                                <span>Github Source</span>
+                                            </a>
+                                        ) : (
+                                            <button disabled className="neo-button flex-1 justify-center py-4 text-lg bg-gray-200 text-gray-500 border-gray-400 cursor-not-allowed" title="Tambahkan link github di Supabase">
+                                                <FaGithub size={20} />
+                                                <span>Github Source</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 {selectedProject.imgSrc && (
-                                    <div className="relative w-full">
-                                        {isImageLoading && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                                                <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin" />
-                                            </div>
-                                        )}
-                                        <Image
-                                            src={selectedProject.imgSrc}
-                                            alt={selectedProject.title}
-                                            width={1200}
-                                            height={800}
-                                            className={`w-full h-auto transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'
-                                                }`}
-                                            onLoad={() => setIsImageLoading(false)}
-                                            priority
-                                        />
+                                    <div className="relative w-full bg-gray-100 p-6 flex justify-center">
+                                        <div className="w-full border-4 border-black shadow-[6px_6px_0px_#000] overflow-hidden bg-white relative">
+                                            {isImageLoading && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+                                                    <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin" />
+                                                </div>
+                                            )}
+                                            <Image
+                                                src={selectedProject.imgSrc}
+                                                alt={selectedProject.title}
+                                                width={1200}
+                                                height={800}
+                                                className={`w-full h-auto transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+                                                onLoad={() => setIsImageLoading(false)}
+                                                priority
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </motion.div>

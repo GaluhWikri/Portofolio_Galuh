@@ -30,6 +30,7 @@ export interface Project {
     tech: string[];
     image_url: string;
     link?: string;
+    github?: string;
     order_index: number;
     is_featured: boolean;
     is_active: boolean;

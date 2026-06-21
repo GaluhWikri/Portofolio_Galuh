@@ -18,6 +18,8 @@ interface Project {
     tech: string[];
     imgSrc: string | null;
     link?: string;
+    description?: string;
+    github?: string;
 }
 
 interface PortfolioData {
@@ -81,6 +83,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
                     imgSrc: project.image_url, // Map image_url to imgSrc for compatibility
                     link: project.link,
                     description: project.description,
+                    github: (project as any).github || null,
                 }));
             } else {
                 console.log('⚠️ No projects from Supabase, using local data.json');
@@ -149,6 +152,7 @@ export async function getProjectsData(): Promise<Project[]> {
             imgSrc: project.image_url,
             link: project.link,
             description: project.description,
+            github: (project as any).github || null,
         }));
     } catch (error) {
         console.error('Error fetching projects:', error);

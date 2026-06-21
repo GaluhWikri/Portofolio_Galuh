@@ -81,6 +81,7 @@
       "icon": "/assets/icon/icons8-nodejs-48.png"
     }
   ],
+  
   "projects": [
     {
       "id": 1,
@@ -131,6 +132,8 @@
         "Vercel"
       ],
       "link": "https://fake-the-run.vercel.app/",
+      "github": "https://github.com/GaluhWikri/fake-the-run",
+      "description": "A web application that allows users to generate realistic running tracking images with customizable routes, pace, and distances. Built with Next.js and optimized for performance.",
       "imgSrc": "https://image.thum.io/get/maxAge/12/width/700/https://fake-the-run.vercel.app"
     },
     {

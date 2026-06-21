@@ -466,6 +466,22 @@ body {
   background: var(--color-gray-400);
 }
 
+/* Custom Modal Scrollbar */
+.modal-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-white);
+  border-left: 3px solid var(--color-black);
+}
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-black);
+  border: 2px solid var(--color-white);
+}
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-800);
+}
+
 /* Navigation Styles */
 .nav-logo {
   font-size: 1.5rem;
