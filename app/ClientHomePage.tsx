@@ -11,6 +11,8 @@ import ClientOnly from './components/ClientOnly';
 import dynamic from 'next/dynamic';
 
 import FloatingSkills from './components/FloatingSkills/FloatingSkills';
+import PhysicsSkills from './components/PhysicsSkills/PhysicsSkills';
+import RotatingText from './components/RotatingText/RotatingText';
 
 import AnimatedNumber from './components/AnimatedNumber/AnimatedNumber';
 
@@ -153,6 +155,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const [copied, setCopied] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [skillMode, setSkillMode] = useState<'grid' | 'physics'>('physics');
 
     // Contact form states
     const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -363,10 +366,24 @@ export default function ClientHomePage({ data }: { data: any }) {
                         <section
                             id="home"
                             ref={(el) => { sectionRefs.current['home'] = el; }}
-                            className="section"
+                            className="section relative overflow-hidden"
                             style={{ minHeight: '100vh' }}
                         >
-                            <div className="max-w-3xl">
+                            {/* Background Marquee Text */}
+                            <div className="absolute inset-0 flex flex-col justify-center gap-8 opacity-[0.03] select-none pointer-events-none z-0">
+                                <div className="overflow-hidden w-full flex">
+                                    <div className="animate-marquee-left text-7xl md:text-8xl lg:text-9xl font-black uppercase whitespace-nowrap">
+                                        FRONTEND DEVELOPER • UI/UX DESIGNER • CREATIVE CODER • GALUH WIKRI • FRONTEND DEVELOPER • UI/UX DESIGNER • CREATIVE CODER • GALUH WIKRI •
+                                    </div>
+                                </div>
+                                <div className="overflow-hidden w-full flex">
+                                    <div className="animate-marquee-right text-7xl md:text-8xl lg:text-9xl font-black uppercase whitespace-nowrap">
+                                        BUILDING DIGITAL EXPERIENCES THAT MATTER • PORTFOLIO 2026 • BUILDING DIGITAL EXPERIENCES THAT MATTER • PORTFOLIO 2026 •
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="max-w-3xl z-10 relative">
                                 <motion.div
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -379,10 +396,22 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             <span className="absolute -bottom-2 left-0 w-full h-3 bg-black -z-10"></span>
                                         </span>
                                     </h1>
-                                    <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-xl leading-relaxed">
-                                        UI/UX Designer & Frontend Developer crafting
-                                        digital experiences that matter.
-                                    </p>
+                                    
+                                    {/* Rotating Text Integration */}
+                                    <div className="text-lg md:text-xl text-gray-600 mb-8 max-w-xl leading-relaxed flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <span>CRAFTING</span>
+                                        <span className="inline-flex overflow-hidden h-[1.5em] relative align-bottom whitespace-nowrap">
+                                            <RotatingText
+                                                texts={['user experiences', 'frontend interfaces', 'creative designs', 'digital products']}
+                                                mainClassName="text-black font-black uppercase border-b-4 border-black pb-0.5 whitespace-nowrap"
+                                                staggerDuration={0}
+                                                splitBy="lines"
+                                                rotationInterval={2500}
+                                            />
+                                        </span>
+                                        <span>THAT MATTER.</span>
+                                    </div>
+                                    
                                     <div className="flex flex-wrap gap-4">
                                         <button
                                             onClick={() => handleNavigate('projects')}
@@ -395,7 +424,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             onClick={() => setShowCv(true)}
                                             className="neo-button"
                                         >
-                                            <Download size={18} />
+                                            <Download size={18} className="download-icon" />
                                             <span>Download CV</span>
                                         </button>
                                     </div>
@@ -477,7 +506,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 {experience && experience.length > 0 ? (
                                     <div className="flex flex-col gap-6">
                                         {experience.map((exp: any, index: number) => (
-                                            <div key={index} className="neo-card hover:-translate-y-1 transition-transform duration-300">
+                                            <div key={index} className="neo-card">
                                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                                                     <div>
                                                         <h3 className="text-2xl font-black uppercase text-black">{exp.position}</h3>
@@ -562,25 +591,82 @@ export default function ClientHomePage({ data }: { data: any }) {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 whileInView={{ opacity: 1 }}
-                                viewport={{ once: true, amount: 0.3 }}
+                                viewport={{ once: true, amount: 0.2 }}
                                 transition={{ duration: 0.6 }}
+                                className="w-full max-w-6xl"
                             >
                                 <h2 className="section-title">Skills & Tools</h2>
-                                <div className="w-full">
-                                    <FloatingSkills skills={tools} />
-                                </div>
+                                
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+                                    {/* Kolom Kiri: Box Utama Globe / Grid (Span 8) */}
+                                    <div className="lg:col-span-8 flex flex-col w-full">
+                                        <div className="w-full bg-white border-4 border-black shadow-[8px_8px_0px_#000] overflow-hidden flex flex-col">
+                                            {/* Header Bar dengan Toggle Buttons INSIDE the box */}
+                                            <div className="bg-gray-50 border-b-4 border-black p-4 flex flex-wrap justify-between items-center gap-4 select-none">
+                                                <span className="font-extrabold text-xs uppercase tracking-wider text-black">SKILLS & TOOLS</span>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setSkillMode('physics')}
+                                                        className={`neo-button text-xs py-1 px-3 ${skillMode === 'physics' ? 'neo-button-dark' : ''}`}
+                                                    >
+                                                        Globe Mode (3D)
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setSkillMode('grid')}
+                                                        className={`neo-button text-xs py-1 px-3 ${skillMode === 'grid' ? 'neo-button-dark' : ''}`}
+                                                    >
+                                                        Grid Mode
+                                                    </button>
+                                                </div>
+                                            </div>
 
-                                {/* Soft Skills Section */}
-                                <div className="soft-skills-section mt-8">
-                                    <h3 className="soft-skills-title">SOFT SKILLS_</h3>
-                                    <div className="soft-skills-divider"></div>
-                                    <div className="soft-skills-grid">
-                                        {['Problem Solving', 'Communication', 'Team Leadership', 'Time Management', 'Design Thinking',
-                                            'Critical Thinking', 'Adaptability', 'Creativity', 'Collaboration', 'Empathy', 'Flexibility',
-                                            'Innovation', 'Leadership', 'Motivation', 'Organization', 'Planning',
-                                            'Project Management', 'Teamwork'].map((skill, index) => (
-                                                <span key={index} className="soft-skill-tag">{skill}</span>
-                                            ))}
+                                            {/* Area Konten Box */}
+                                            <div className="w-full">
+                                                <AnimatePresence mode="wait">
+                                                    {skillMode === 'grid' ? (
+                                                        <motion.div
+                                                            key="grid"
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            transition={{ duration: 0.15 }}
+                                                            className="flex items-center justify-center min-h-[400px] md:min-h-[500px]"
+                                                        >
+                                                            <FloatingSkills skills={tools} />
+                                                        </motion.div>
+                                                    ) : (
+                                                        <motion.div
+                                                            key="physics"
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            transition={{ duration: 0.15 }}
+                                                        >
+                                                            <ClientOnly>
+                                                                <PhysicsSkills skills={tools} />
+                                                            </ClientOnly>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Kolom Kanan: Soft Skills Card (Span 4) */}
+                                    <div className="lg:col-span-4 w-full">
+                                        <div className="w-full bg-white border-4 border-black shadow-[8px_8px_0px_#000] p-6 flex flex-col">
+                                            <h3 className="text-xs font-black uppercase tracking-wider mb-4 border-b-2 border-black pb-2 text-black">
+                                                Soft Skills
+                                            </h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {['Problem Solving', 'Communication', 'Team Leadership', 'Time Management', 'Design Thinking',
+                                                    'Critical Thinking', 'Adaptability', 'Creativity', 'Collaboration', 'Empathy', 'Flexibility',
+                                                    'Innovation', 'Leadership', 'Motivation', 'Organization', 'Planning',
+                                                    'Project Management', 'Teamwork'].map((skill, index) => (
+                                                        <span key={index} className="soft-skill-tag">{skill}</span>
+                                                    ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>

@@ -66,9 +66,9 @@ export default function FloatingSkills({ skills }: FloatingSkillsProps) {
     }
 
     return (
-        <div className="floating-skills-container">
+        <div className="w-full flex items-center justify-center p-4 md:p-8">
             {/* Organized Grid of Skills */}
-            <div className="skills-organized-grid">
+            <div className="skills-organized-grid w-full">
                 {validSkills.map((skill, index) => (
                     <FloatingSkillIcon
                         key={skill.name || index}

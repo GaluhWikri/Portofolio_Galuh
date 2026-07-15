@@ -15,8 +15,6 @@ import {
   type Variants,
   type VariantLabels,
   type Target,
-  // --- PERBAIKAN: Mengembalikan nama tipe yang benar 'AnimationControls' (huruf A besar) ---
-  type animationControls,
   type TargetAndTransition,
 } from "framer-motion";
 
