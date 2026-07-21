@@ -13,6 +13,7 @@ import dynamic from 'next/dynamic';
 import FloatingSkills from './components/FloatingSkills/FloatingSkills';
 import PhysicsSkills from './components/PhysicsSkills/PhysicsSkills';
 import RotatingText from './components/RotatingText/RotatingText';
+import Terminal from './components/Terminal/Terminal';
 
 import AnimatedNumber from './components/AnimatedNumber/AnimatedNumber';
 
@@ -164,36 +165,84 @@ export default function ClientHomePage({ data }: { data: any }) {
 
     const contentRef = useRef<HTMLDivElement>(null);
     const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+    // Refs for direct DOM scroll animation (no React state = no re-render lag)
+    const terminalWrapRef = useRef<HTMLDivElement>(null);
+    const heroTextRef = useRef<HTMLDivElement>(null);
 
     const { aboutMe, education, experience, projects, tools } = data;
     const cvPath = '/assets/cv/Galuh Wikri Ramadhan_cv.pdf';
 
-    // Scroll spy effect
-    useEffect(() => {
-        const handleScroll = () => {
-            if (!contentRef.current) return;
+    const handlePanelScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const st = e.currentTarget.scrollTop;
 
-            const scrollPosition = contentRef.current.scrollTop + 200;
+        // Direct DOM update — no setState, no re-render, perfectly smooth
+        const progress = Math.min(st / 300, 1);
+        if (heroTextRef.current) {
+            const opacity = Math.max(0, 1 - progress * 1.4);
+            const translateY = -st * 0.25;
+            heroTextRef.current.style.opacity = String(opacity);
+            heroTextRef.current.style.transform = `translateY(${translateY}px)`;
+        }
+        if (terminalWrapRef.current) {
+            // Translate up moderately (max -80px) as requested
+            const translateY = -Math.min(st * 0.4, 80);
+            const scale = 0.82 + progress * 0.18;
+            const rotateX = Math.max(0, 15 - progress * 15);
+            
+            let opacity = 0.35;
+            if (st > 0) {
+                opacity = Math.min(1.0, 0.35 + (st / 200) * 0.65);
+            }
+            
+            terminalWrapRef.current.style.transform = `translateY(${translateY}px) scale(${scale}) rotateX(${rotateX}deg)`;
+            terminalWrapRef.current.style.opacity = String(opacity);
+            terminalWrapRef.current.style.pointerEvents = 'auto';
+        }
 
-            for (const item of navItems) {
-                const section = sectionRefs.current[item.id];
-                if (section) {
-                    const offsetTop = section.offsetTop;
-                    const offsetHeight = section.offsetHeight;
-
-                    if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-                        setActiveSection(item.id);
-                        break;
-                    }
+        // Scroll spy
+        const scrollPosition = st + 200;
+        for (const item of navItems) {
+            const section = sectionRefs.current[item.id];
+            if (section) {
+                const offsetTop = section.offsetTop;
+                const offsetHeight = section.offsetHeight;
+                if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+                    setActiveSection(item.id);
+                    break;
                 }
             }
-        };
-
-        const content = contentRef.current;
-        if (content) {
-            content.addEventListener('scroll', handleScroll);
-            return () => content.removeEventListener('scroll', handleScroll);
         }
+    };
+
+    // Also listen on native scroll event for same direct-DOM update
+    useEffect(() => {
+        if (!contentRef.current) return;
+        const handleScroll = () => {
+            const st = contentRef.current!.scrollTop;
+            const progress = Math.min(st / 300, 1);
+            if (heroTextRef.current) {
+                const opacity = Math.max(0, 1 - progress * 1.4);
+                heroTextRef.current.style.opacity = String(opacity);
+                heroTextRef.current.style.transform = `translateY(${-st * 0.25}px)`;
+            }
+            if (terminalWrapRef.current) {
+                const translateY = -Math.min(st * 0.4, 80);
+                const scale = 0.82 + progress * 0.18;
+                const rotateX = Math.max(0, 15 - progress * 15);
+                
+                let opacity = 0.35;
+                if (st > 0) {
+                    opacity = Math.min(1.0, 0.35 + (st / 200) * 0.65);
+                }
+                
+                terminalWrapRef.current.style.transform = `translateY(${translateY}px) scale(${scale}) rotateX(${rotateX}deg)`;
+                terminalWrapRef.current.style.opacity = String(opacity);
+                terminalWrapRef.current.style.pointerEvents = 'auto';
+            }
+        };
+        const content = contentRef.current;
+        content.addEventListener('scroll', handleScroll, { passive: true });
+        return () => content.removeEventListener('scroll', handleScroll);
     }, []);
 
     // Navigation handler
@@ -359,15 +408,18 @@ export default function ClientHomePage({ data }: { data: any }) {
 
             <div className="split-layout">
                 {/* Right Content Panel */}
-                <main className="right-panel" ref={contentRef}>
+                <main className="right-panel" ref={contentRef} onScroll={handlePanelScroll}>
                     <div className="content-wrapper">
 
                         {/* Home Section */}
                         <section
                             id="home"
                             ref={(el) => { sectionRefs.current['home'] = el; }}
-                            className="section relative overflow-hidden"
-                            style={{ minHeight: '100vh' }}
+                            className="section relative"
+                            style={{ 
+                                perspective: '1200px',
+                                zIndex: 1,
+                            }}
                         >
                             {/* Background Marquee Text */}
                             <div className="absolute inset-0 flex flex-col justify-center gap-8 opacity-[0.03] select-none pointer-events-none z-0">
@@ -383,52 +435,72 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 </div>
                             </div>
 
-                            <div className="max-w-3xl z-10 relative">
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6 }}
-                                >
-                                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase leading-none mb-6 tracking-tighter">
-                                        Hello,<br />
-                                        I'm <span className="relative inline-block">
-                                            Galuh wikri
-                                            <span className="absolute -bottom-2 left-0 w-full h-3 bg-black -z-10"></span>
-                                        </span>
-                                    </h1>
-                                    
-                                    {/* Rotating Text Integration */}
-                                    <div className="text-lg md:text-xl text-gray-600 mb-8 max-w-xl leading-relaxed flex flex-wrap items-center gap-x-2 gap-y-1">
-                                        <span>CRAFTING</span>
-                                        <span className="inline-flex overflow-hidden h-[1.5em] relative align-bottom whitespace-nowrap">
-                                            <RotatingText
-                                                texts={['user experiences', 'frontend interfaces', 'creative designs', 'digital products']}
-                                                mainClassName="text-black font-black uppercase border-b-4 border-black pb-0.5 whitespace-nowrap"
-                                                staggerDuration={0}
-                                                splitBy="lines"
-                                                rotationInterval={2500}
-                                            />
-                                        </span>
-                                        <span>THAT MATTER.</span>
-                                    </div>
-                                    
-                                    <div className="flex flex-wrap gap-4">
-                                        <button
-                                            onClick={() => handleNavigate('projects')}
-                                            className="neo-button neo-button-dark"
-                                        >
-                                            <span>View Projects</span>
-                                            <ArrowUpRight size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => setShowCv(true)}
-                                            className="neo-button"
-                                        >
-                                            <Download size={18} className="download-icon" />
-                                            <span>Download CV</span>
-                                        </button>
-                                    </div>
-                                </motion.div>
+                            {/* Terminal — absolutely positioned, peeks from 60% down, animates up on scroll via ref */}
+                            <div
+                                ref={terminalWrapRef}
+                                className="absolute left-0 right-0 px-5 md:px-16 pointer-events-auto"
+                                style={{
+                                    top: '78%',
+                                    zIndex: 5,
+                                    opacity: 0.35,
+                                    transform: 'translateY(0px) scale(0.82) rotateX(15deg)',
+                                    transformOrigin: 'top center',
+                                    transformStyle: 'preserve-3d',
+                                    willChange: 'transform, opacity',
+                                }}
+                            >
+                                <div className="max-w-4xl mx-auto">
+                                    <Terminal onDownloadCv={() => setShowCv(true)} />
+                                </div>
+                            </div>
+
+                            {/* Hero text — z-index 10, ABOVE terminal. No extra padding — inherits .section 4rem padding for consistent left-align */}
+                            <div
+                                ref={heroTextRef}
+                                className="relative"
+                                style={{
+                                    zIndex: 10,
+                                    willChange: 'opacity, transform',
+                                }}
+                            >
+                                <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black uppercase leading-none mb-6 tracking-tighter text-left">
+                                    Hello,<br />
+                                    I'm <span className="relative inline-block">
+                                        Galuh wikri
+                                        <span className="absolute -bottom-2 left-0 w-full h-3 bg-black -z-10"></span>
+                                    </span>
+                                </h1>
+
+                                <div className="text-base sm:text-lg md:text-xl text-gray-600 mb-8 max-w-xl leading-relaxed flex flex-wrap items-center justify-start gap-x-2 gap-y-1">
+                                    <span>CRAFTING</span>
+                                    <span className="inline-flex overflow-hidden h-[1.5em] relative align-bottom whitespace-nowrap">
+                                        <RotatingText
+                                            texts={['user experiences', 'frontend interfaces', 'creative designs', 'digital products']}
+                                            mainClassName="text-black font-black uppercase border-b-4 border-black pb-0.5 whitespace-nowrap"
+                                            staggerDuration={0}
+                                            splitBy="lines"
+                                            rotationInterval={2500}
+                                        />
+                                    </span>
+                                    <span>THAT MATTER.</span>
+                                </div>
+
+                                <div className="flex flex-wrap justify-start gap-4">
+                                    <button
+                                        onClick={() => handleNavigate('projects')}
+                                        className="neo-button neo-button-dark"
+                                    >
+                                        <span>View Projects</span>
+                                        <ArrowUpRight size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => setShowCv(true)}
+                                        className="neo-button"
+                                    >
+                                        <Download size={18} className="download-icon" />
+                                        <span>Download CV</span>
+                                    </button>
+                                </div>
                             </div>
                         </section>
 
@@ -437,6 +509,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                             id="about"
                             ref={(el) => { sectionRefs.current['about'] = el; }}
                             className="section"
+                            style={{ paddingTop: '26rem' }}
                         >
                             <motion.div
                                 initial={{ opacity: 0 }}
@@ -462,8 +535,6 @@ export default function ClientHomePage({ data }: { data: any }) {
                                         </span>
                                     </div>
                                 </div>
-
-
 
                                 {/* Quick Stats */}
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
@@ -1018,7 +1089,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                         </motion.div>
                     )
                 }
-            </AnimatePresence >
+            </AnimatePresence>
         </>
     );
 }
