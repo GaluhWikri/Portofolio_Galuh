@@ -77,6 +77,7 @@ export default function Terminal({ onDownloadCv }: { onDownloadCv?: () => void }
   }, []);
 
   useEffect(() => {
+    if (outputs.length === 0) return;
     const cleanup = scrollToBottom();
     return () => cleanup && cleanup();
   }, [outputs, scrollToBottom]);

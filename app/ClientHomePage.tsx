@@ -242,6 +242,10 @@ export default function ClientHomePage({ data }: { data: any }) {
         };
         const content = contentRef.current;
         content.addEventListener('scroll', handleScroll, { passive: true });
+        
+        // Initialize position on load
+        handleScroll();
+
         return () => content.removeEventListener('scroll', handleScroll);
     }, []);
 
