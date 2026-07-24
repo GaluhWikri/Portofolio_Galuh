@@ -153,7 +153,7 @@ export default function Terminal({ onDownloadCv }: { onDownloadCv?: () => void }
             <p className="text-white font-extrabold tracking-wide">▶ EXPERIENCE</p>
             <div className="space-y-2">
               {(portfolioData.experience as ExperienceItem[]).map((exp: ExperienceItem, idx: number) => (
-                <div key={idx} className="border-l-2 border-white pl-3 py-1 bg-black/60 rounded-r border-r border-y border-zinc-800">
+                <div key={idx} className="border-l-2 border-white pl-3 py-1 bg-black/60 rounded-r border-r border-y">
                   <div className="flex flex-wrap items-baseline justify-between gap-1">
                     <span className="text-white font-extrabold text-xs md:text-sm">{exp.position}</span>
                     <span className="text-[11px] bg-white text-black font-extrabold px-1.5 py-0.2 rounded">{exp.period}</span>
