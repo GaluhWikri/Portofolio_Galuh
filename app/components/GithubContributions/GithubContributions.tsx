@@ -61,6 +61,17 @@ export default function GithubContributions({
     fetchData();
   }, [username]);
 
+  // Auto-scroll to the newest contributions (right side) on mobile when data loads
+  useEffect(() => {
+    if (data.length > 0 && containerRef.current) {
+      setTimeout(() => {
+        if (containerRef.current && window.innerWidth < 1024) {
+          containerRef.current.scrollLeft = containerRef.current.scrollWidth;
+        }
+      }, 100);
+    }
+  }, [data]);
+
   // Process data into 52-53 weeks (7 rows per week)
   const { weeks, monthBuckets, stats, dateRangeStr } = useMemo(() => {
     if (!data || data.length === 0) {
@@ -310,6 +321,9 @@ export default function GithubContributions({
               <span className="text-gray-500 font-semibold">
                 {dateRangeStr || 'LAST 365 DAYS'}
               </span>
+              <span className="lg:hidden text-[10px] font-mono font-bold bg-[#a7f3d0] text-black border border-black px-2 py-0.5 shadow-[1px_1px_0px_#000]">
+                ← SLIDE 365 DAYS →
+              </span>
             </div>
           </div>
 
@@ -335,14 +349,17 @@ export default function GithubContributions({
           {!loading && data.length > 0 && (
             <div
               ref={containerRef}
-              className="w-full overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 select-none"
+              className="w-full overflow-x-auto pb-4 pt-1 touch-pan-x select-none"
+              style={{
+                WebkitOverflowScrolling: 'touch',
+              }}
             >
-              <div className="min-w-[760px] flex flex-col gap-6">
+              <div className="w-max min-w-[780px] lg:w-full flex flex-col gap-6 pr-8 lg:pr-0">
                 
                 {/* 1. Heatmap Grid (7 rows x ~53 cols) */}
-                <div className="flex items-start gap-1 justify-between">
+                <div className="flex items-start gap-1 sm:gap-1.5 justify-between w-full">
                   {weeks.map((week, weekIndex) => (
-                    <div key={weekIndex} className="flex flex-col gap-1 items-center">
+                    <div key={weekIndex} className="flex flex-col gap-1 items-center shrink-0">
                       {week.map((day, dayIndex) => {
                         const { sizeClass, bgClass } = getCellVisual(day);
                         const isHovered = hoveredDay && day && hoveredDay.date === day.date;
@@ -370,7 +387,7 @@ export default function GithubContributions({
 
                 {/* 2. Monthly Bar Chart & Month Indicators */}
                 <div className="relative pt-3 border-t-2 border-gray-200">
-                  <div className="grid grid-flow-col auto-cols-fr gap-2 items-end">
+                  <div className="grid grid-flow-col auto-cols-fr gap-1 sm:gap-2 items-end w-full min-w-[780px] lg:min-w-0">
                     {monthBuckets.map((m, idx) => {
                       const isActive = activeMonthIdx === idx;
                       const barHeightRatio = m.count / maxMonthCount;
@@ -382,7 +399,7 @@ export default function GithubContributions({
                           key={idx}
                           onMouseEnter={() => setHoveredMonthIndex(idx)}
                           onMouseLeave={() => setHoveredMonthIndex(null)}
-                          className="flex flex-col items-center gap-1.5 cursor-pointer group/month"
+                          className="flex flex-col items-center gap-1.5 cursor-pointer group/month shrink-0"
                         >
                           {/* Monthly contribution count */}
                           <span

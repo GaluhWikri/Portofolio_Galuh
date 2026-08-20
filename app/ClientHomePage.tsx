@@ -176,16 +176,9 @@ export default function ClientHomePage({ data }: { data: any }) {
     const handlePanelScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const st = e.currentTarget.scrollTop;
 
-        // Direct DOM update — no setState, no re-render, perfectly smooth
+        // Direct DOM update for smooth 3D scroll animation of Terminal
         const progress = Math.min(st / 300, 1);
-        if (heroTextRef.current) {
-            const opacity = Math.max(0, 1 - progress * 1.4);
-            const translateY = -st * 0.25;
-            heroTextRef.current.style.opacity = String(opacity);
-            heroTextRef.current.style.transform = `translateY(${translateY}px)`;
-        }
         if (terminalWrapRef.current) {
-            // Translate up moderately (max -80px) as requested
             const translateY = -Math.min(st * 0.4, 80);
             const scale = 0.82 + progress * 0.18;
             const rotateX = Math.max(0, 15 - progress * 15);
@@ -215,17 +208,12 @@ export default function ClientHomePage({ data }: { data: any }) {
         }
     };
 
-    // Also listen on native scroll event for same direct-DOM update
+    // Also listen on native scroll event for direct DOM update & scroll spy
     useEffect(() => {
         if (!contentRef.current) return;
         const handleScroll = () => {
             const st = contentRef.current!.scrollTop;
             const progress = Math.min(st / 300, 1);
-            if (heroTextRef.current) {
-                const opacity = Math.max(0, 1 - progress * 1.4);
-                heroTextRef.current.style.opacity = String(opacity);
-                heroTextRef.current.style.transform = `translateY(${-st * 0.25}px)`;
-            }
             if (terminalWrapRef.current) {
                 const translateY = -Math.min(st * 0.4, 80);
                 const scale = 0.82 + progress * 0.18;
@@ -240,11 +228,22 @@ export default function ClientHomePage({ data }: { data: any }) {
                 terminalWrapRef.current.style.opacity = String(opacity);
                 terminalWrapRef.current.style.pointerEvents = 'auto';
             }
+
+            const scrollPosition = st + 200;
+            for (const item of navItems) {
+                const section = sectionRefs.current[item.id];
+                if (section) {
+                    const offsetTop = section.offsetTop;
+                    const offsetHeight = section.offsetHeight;
+                    if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+                        setActiveSection(item.id);
+                        break;
+                    }
+                }
+            }
         };
         const content = contentRef.current;
         content.addEventListener('scroll', handleScroll, { passive: true });
-        
-        // Initialize position on load
         handleScroll();
 
         return () => content.removeEventListener('scroll', handleScroll);
@@ -420,10 +419,11 @@ export default function ClientHomePage({ data }: { data: any }) {
                         <section
                             id="home"
                             ref={(el) => { sectionRefs.current['home'] = el; }}
-                            className="section relative"
+                            className="section relative min-h-screen md:min-h-[140vh]"
                             style={{ 
                                 perspective: '1200px',
                                 zIndex: 1,
+                                justifyContent: 'flex-start',
                             }}
                         >
                             {/* Background Marquee Text */}
@@ -440,32 +440,34 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 </div>
                             </div>
 
-                            {/* Terminal — absolutely positioned, peeks from 60% down, animates up on scroll via ref */}
+                            {/* Terminal — 3D tilt scroll animation (Hidden on mobile, visible on desktop) */}
                             <div
-                                ref={terminalWrapRef}
-                                className="absolute left-0 right-0 px-5 md:px-16 pointer-events-auto"
+                                className="hidden md:block absolute left-0 right-0 px-5 md:px-16 pointer-events-auto"
                                 style={{
-                                    top: '78%',
+                                    top: '75vh',
                                     zIndex: 5,
-                                    opacity: 0.35,
-                                    transform: 'translateY(0px) scale(0.82) rotateX(15deg)',
-                                    transformOrigin: 'top center',
-                                    transformStyle: 'preserve-3d',
-                                    willChange: 'transform, opacity',
                                 }}
                             >
-                                <div className="max-w-4xl mx-auto">
+                                <div
+                                    ref={terminalWrapRef}
+                                    className="w-full max-w-4xl"
+                                    style={{
+                                        opacity: 0.35,
+                                        transform: 'translateY(0px) scale(0.82) rotateX(15deg)',
+                                        transformOrigin: 'top center',
+                                        transformStyle: 'preserve-3d',
+                                        willChange: 'transform, opacity',
+                                    }}
+                                >
                                     <Terminal onDownloadCv={() => setShowCv(true)} />
                                 </div>
                             </div>
 
-                            {/* Hero text — z-index 10, ABOVE terminal. No extra padding — inherits .section 4rem padding for consistent left-align */}
+                            {/* Hero text — Vertically Centered in Viewport */}
                             <div
-                                ref={heroTextRef}
-                                className="relative"
+                                className="relative min-h-[calc(100vh-8rem)] flex flex-col justify-center"
                                 style={{
                                     zIndex: 10,
-                                    willChange: 'opacity, transform',
                                 }}
                             >
                                 <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black uppercase leading-none mb-6 tracking-tighter text-left">
@@ -514,14 +516,14 @@ export default function ClientHomePage({ data }: { data: any }) {
                             id="about"
                             ref={(el) => { sectionRefs.current['about'] = el; }}
                             className="section"
-                            style={{ paddingTop: '26rem' }}
+                            style={{ minHeight: 'auto', paddingTop: '4rem', paddingBottom: '4rem', justifyContent: 'flex-start' }}
                         >
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 whileInView={{ opacity: 1 }}
                                 viewport={{ once: true, amount: 0.2 }}
                                 transition={{ duration: 0.6 }}
-                                className="w-full max-w-4xl"
+                                className="w-full max-w-6xl"
                             >
                                 <h2 className="section-title">About Me</h2>
                                 <p className="text-lg md:text-xl leading-relaxed text-gray-700 mb-8">
@@ -561,6 +563,11 @@ export default function ClientHomePage({ data }: { data: any }) {
                                         </p>
                                         <p className="stat-label">Tools</p>
                                     </div>
+                                </div>
+
+                                {/* GitHub 12 Months Activity */}
+                                <div className="w-full mt-8">
+                                    <GithubContributions username="GaluhWikri" />
                                 </div>
                             </motion.div>
                         </section>
@@ -760,11 +767,6 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                {/* GitHub 12 Months Activity Card */}
-                                <div className="w-full mt-8">
-                                    <GithubContributions username="GaluhWikri" />
                                 </div>
                             </motion.div>
                         </section>
