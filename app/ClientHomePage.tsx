@@ -16,6 +16,7 @@ import RotatingText from './components/RotatingText/RotatingText';
 import Terminal from './components/Terminal/Terminal';
 
 import AnimatedNumber from './components/AnimatedNumber/AnimatedNumber';
+import GithubContributions from './components/GithubContributions/GithubContributions';
 
 // Interfaces
 interface Project {
@@ -518,9 +519,9 @@ export default function ClientHomePage({ data }: { data: any }) {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 whileInView={{ opacity: 1 }}
-                                viewport={{ once: true, amount: 0.3 }}
+                                viewport={{ once: true, amount: 0.2 }}
                                 transition={{ duration: 0.6 }}
-                                className="max-w-3xl"
+                                className="w-full max-w-4xl"
                             >
                                 <h2 className="section-title">About Me</h2>
                                 <p className="text-lg md:text-xl leading-relaxed text-gray-700 mb-8">
@@ -672,10 +673,10 @@ export default function ClientHomePage({ data }: { data: any }) {
                             >
                                 <h2 className="section-title">Skills & Tools</h2>
                                 
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch w-full">
                                     {/* Kolom Kiri: Box Utama Globe / Grid (Span 8) */}
-                                    <div className="lg:col-span-8 flex flex-col w-full">
-                                        <div className="w-full bg-white border-4 border-black shadow-[8px_8px_0px_#000] overflow-hidden flex flex-col">
+                                    <div className="lg:col-span-8 flex flex-col w-full h-full">
+                                        <div className="w-full h-full bg-white border-4 border-black shadow-[8px_8px_0px_#000] overflow-hidden flex flex-col">
                                             {/* Header Bar dengan Toggle Buttons INSIDE the box */}
                                             <div className="bg-gray-50 border-b-4 border-black p-4 flex flex-wrap justify-between items-center gap-4 select-none">
                                                 <span className="font-extrabold text-xs uppercase tracking-wider text-black">SKILLS & TOOLS</span>
@@ -696,7 +697,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             </div>
 
                                             {/* Area Konten Box */}
-                                            <div className="w-full">
+                                            <div className="w-full flex-1 flex flex-col">
                                                 <AnimatePresence mode="wait">
                                                     {skillMode === 'grid' ? (
                                                         <motion.div
@@ -705,7 +706,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                             animate={{ opacity: 1 }}
                                                             exit={{ opacity: 0 }}
                                                             transition={{ duration: 0.15 }}
-                                                            className="flex items-center justify-center min-h-[400px] md:min-h-[500px]"
+                                                            className="flex-1 flex items-center justify-center min-h-[440px] md:min-h-[480px]"
                                                         >
                                                             <FloatingSkills skills={tools} />
                                                         </motion.div>
@@ -716,6 +717,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                             animate={{ opacity: 1 }}
                                                             exit={{ opacity: 0 }}
                                                             transition={{ duration: 0.15 }}
+                                                            className="flex-1 w-full"
                                                         >
                                                             <ClientOnly>
                                                                 <PhysicsSkills skills={tools} />
@@ -728,21 +730,41 @@ export default function ClientHomePage({ data }: { data: any }) {
                                     </div>
 
                                     {/* Kolom Kanan: Soft Skills Card (Span 4) */}
-                                    <div className="lg:col-span-4 w-full">
-                                        <div className="w-full bg-white border-4 border-black shadow-[8px_8px_0px_#000] p-6 flex flex-col">
-                                            <h3 className="text-xs font-black uppercase tracking-wider mb-4 border-b-2 border-black pb-2 text-black">
-                                                Soft Skills
-                                            </h3>
-                                            <div className="flex flex-wrap gap-2">
-                                                {['Problem Solving', 'Communication', 'Team Leadership', 'Time Management', 'Design Thinking',
-                                                    'Critical Thinking', 'Adaptability', 'Creativity', 'Collaboration', 'Empathy', 'Flexibility',
-                                                    'Innovation', 'Leadership', 'Motivation', 'Organization', 'Planning',
-                                                    'Project Management', 'Teamwork'].map((skill, index) => (
-                                                        <span key={index} className="soft-skill-tag">{skill}</span>
-                                                    ))}
+                                    <div className="lg:col-span-4 flex flex-col w-full h-full">
+                                        <div className="w-full h-full bg-white border-4 border-black shadow-[8px_8px_0px_#000] overflow-hidden flex flex-col">
+                                            {/* Header Bar matching left card */}
+                                            <div className="bg-gray-50 border-b-4 border-black p-4 flex justify-between items-center select-none">
+                                                <span className="font-extrabold text-xs uppercase tracking-wider text-black">
+                                                    SOFT SKILLS
+                                                </span>
+                                                <span className="font-mono text-xs font-bold text-gray-500">
+                                                    18 SKILLS
+                                                </span>
+                                            </div>
+
+                                            {/* Area Konten Grid Soft Skills */}
+                                            <div className="p-4 md:p-5 flex-1 flex flex-col justify-between">
+                                                <div className="grid grid-cols-2 gap-2 h-full content-between">
+                                                    {['Problem Solving', 'Communication', 'Team Leadership', 'Time Management', 'Design Thinking',
+                                                        'Critical Thinking', 'Adaptability', 'Creativity', 'Collaboration', 'Empathy', 'Flexibility',
+                                                        'Innovation', 'Leadership', 'Motivation', 'Organization', 'Planning',
+                                                        'Project Management', 'Teamwork'].map((skill, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="w-full py-2.5 px-2 bg-white border-2 border-black shadow-[2px_2px_0px_#000] flex items-center justify-center text-center text-[10px] xl:text-[11px] font-extrabold text-black uppercase tracking-tight leading-none transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] hover:bg-black hover:text-white cursor-default select-none whitespace-nowrap"
+                                                            >
+                                                                <span>{skill}</span>
+                                                            </div>
+                                                        ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* GitHub 12 Months Activity Card */}
+                                <div className="w-full mt-8">
+                                    <GithubContributions username="GaluhWikri" />
                                 </div>
                             </motion.div>
                         </section>
