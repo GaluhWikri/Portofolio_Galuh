@@ -1,351 +1,523 @@
-// app/dashboard/page.tsx
-
 'use client';
 
-import { useState, useEffect, FC, useCallback } from 'react';
-import Image from 'next/image';
+/* eslint-disable @next/next/no-img-element */
 
-// Interface untuk tipe data (Tidak ada perubahan)
-interface Project {
-    id?: number;
-    title: string;
-    tech: string[];
-    imgSrc: string;
+// app/dashboard/page.tsx — CRUD semua konten portofolio.
+// Perubahan ditahan di state dulu, tombol "Simpan Perubahan" yang menulis ke Supabase.
+// Tampilan mengikuti tema portofolio (neo-brutalism: putih, border 3px hitam, shadow offset keras).
+
+import { useEffect, useRef, useState } from 'react';
+import type { Experience, ProfileDoc } from '@/lib/content';
+import type { Project, Skill } from '@/lib/supabase';
+import { loadAll, saveAll, uploadImage } from './actions';
+
+type Tab = 'about' | 'education' | 'experience' | 'contact' | 'softskills' | 'skills' | 'projects';
+
+// Baris yang belum disimpan belum punya id.
+type Draft<T> = Omit<T, 'id'> & { id?: number };
+type SkillRow = Draft<Skill>;
+type ProjectRow = Draft<Project>;
+
+const TABS: { id: Tab; label: string }[] = [
+    { id: 'about', label: 'About Me' },
+    { id: 'education', label: 'Education' },
+    { id: 'experience', label: 'Experience' },
+    { id: 'contact', label: 'Contact & Social' },
+    { id: 'softskills', label: 'Soft Skills' },
+    { id: 'skills', label: 'Skills & Tools' },
+    { id: 'projects', label: 'Projects' },
+];
+
+// Token tema portofolio (lihat app/globals.css): hitam #0A0A0A, border 3px, shadow offset tanpa blur.
+const box = 'border-[3px] border-black bg-white shadow-[4px_4px_0_0_#0A0A0A]';
+const input = 'w-full border-2 border-black bg-white px-3 py-2.5 text-black placeholder-gray-400 transition-all focus:outline-none focus:-translate-x-[2px] focus:-translate-y-[2px] focus:shadow-[3px_3px_0_0_#0A0A0A]';
+const lab = 'mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500';
+const blackBtn = 'border-2 border-black bg-black px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0_0_#0A0A0A] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-none';
+const whiteBtn = 'border-2 border-black bg-white px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-black transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0_0_#0A0A0A]';
+const check = 'h-4 w-4 shrink-0 accent-black';
+
+// Daftar filter skill — harus sama dengan SKILL_FILTERS di app/ClientHomePage.tsx
+const SKILL_FILTERS = ['Programming Languages', 'Primary Stack', 'Also Working With', 'Systems & Design', 'Tools'];
+
+const toggleFilter = (current: string, f: string) => {
+    const on = current.split(',').map((x) => x.trim()).filter(Boolean);
+    return (on.includes(f) ? on.filter((x) => x !== f) : [...on, f]).join(', ');
+};
+
+// Sidik jari state, buat tahu ada perubahan yang belum disimpan.
+const fingerprint = (p: ProfileDoc, s: SkillRow[], pr: ProjectRow[]) => JSON.stringify([p, s, pr]);
+
+function Row({ children }: { children: React.ReactNode }) {
+    return <div className={`${box} space-y-3 p-4`}>{children}</div>;
 }
 
-interface Tool {
-    id?: number;
-    name: string;
-    icon: string;
-}
-
-interface PortfolioData {
-    aboutMe: string;
-    education: {
-        university: string;
-        major: string;
-        period: string;
-    };
-    tools: Tool[];
-    projects: Project[];
-}
-
-type ActiveView = 'about' | 'education' | 'projects' | 'tools';
-
-// Komponen Ikon (Tidak ada perubahan)
-const Icon: FC<{ d: string, className?: string }> = ({ d, className }) => (
-    <svg className={`w-5 h-5 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
-    </svg>
-);
-
-// --- PERUBAHAN: Komponen Wrapper untuk setiap bagian form ---
-// Ini membantu konsistensi dan mengurangi pengulangan kode
-const SectionWrapper: FC<{ title: string; children: React.ReactNode; onAddItem?: () => void; addItemLabel?: string }> = ({ title, children, onAddItem, addItemLabel }) => (
-    <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">{title}</h2>
-            {onAddItem && (
-                <button
-                    onClick={onAddItem}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all transform hover:scale-105"
-                >
-                    <Icon d="M12 4v16m8-8H4" />
-                    <span>{addItemLabel || 'Tambah'}</span>
-                </button>
-            )}
+function UpDown({ onUp, onDown }: { onUp: () => void; onDown: () => void }) {
+    const cls = 'grid h-6 w-7 place-items-center border-2 border-black bg-white text-[10px] leading-none transition-colors hover:bg-black hover:text-white';
+    return (
+        <div className="flex flex-col gap-1">
+            <button type="button" className={cls} onClick={onUp} title="Naikkan">▲</button>
+            <button type="button" className={cls} onClick={onDown} title="Turunkan">▼</button>
         </div>
-        <div className="space-y-6">
-            {children}
-        </div>
-    </div>
-);
+    );
+}
+
+function Remove({ onClick }: { onClick: () => void }) {
+    return (
+        <button type="button" onClick={onClick} title="Hapus"
+            className="shrink-0 self-start border-2 border-red-600 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-red-600 transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:bg-red-600 hover:text-white hover:shadow-[4px_4px_0_0_#0A0A0A]">
+            Hapus
+        </button>
+    );
+}
+
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+    return (
+        <label className="flex cursor-pointer items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em]">
+            <input type="checkbox" className={check} checked={checked} onChange={(e) => onChange(e.target.checked)} />
+            {label}
+        </label>
+    );
+}
 
 export default function Dashboard() {
-    const [data, setData] = useState<PortfolioData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState<string | null>(null);
+    const [profile, setProfile] = useState<ProfileDoc | null>(null);
+    const [skills, setSkills] = useState<SkillRow[]>([]);
+    const [projects, setProjects] = useState<ProjectRow[]>([]);
+    const [deletedSkills, setDeletedSkills] = useState<number[]>([]);
+    const [deletedProjects, setDeletedProjects] = useState<number[]>([]);
+    const [icons, setIcons] = useState<string[]>([]);
+    const [pickerFor, setPickerFor] = useState<number | null>(null);
+    const [tab, setTab] = useState<Tab>('about');
+    const [busy, setBusy] = useState(false);
+    const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+    const [q, setQ] = useState('');
+    const [saved, setSaved] = useState('');
 
-    const [availableIcons, setAvailableIcons] = useState<string[]>([]);
-    const [isIconPickerOpen, setIconPickerOpen] = useState(false);
-    const [currentTargetToolIndex, setCurrentTargetToolIndex] = useState<'new' | number | null>(null);
+    const dirty = !!profile && fingerprint(profile, skills, projects) !== saved;
 
-    const [activeView, setActiveView] = useState<ActiveView>('about');
+    const load = async () => {
+        try {
+            const res = await loadAll();
+            setProfile(res.profile);
+            setSkills(res.skills);
+            setProjects(res.projects);
+            setSaved(fingerprint(res.profile, res.skills, res.projects));
+            setDeletedSkills([]);
+            setDeletedProjects([]);
+            const ic = await fetch('/api/icons').then((r) => r.json()).catch(() => ({ icons: [] }));
+            setIcons(ic.icons || []);
+        } catch (e: any) {
+            setStatus({ ok: false, text: e.message });
+        }
+    };
 
+    useEffect(() => { load(); }, []);
+
+    const setP = (patch: Partial<ProfileDoc>) => setProfile((p) => (p ? { ...p, ...patch } : p));
+
+    const move = <T,>(arr: T[], i: number, dir: -1 | 1) => {
+        const j = i + dir;
+        if (j < 0 || j >= arr.length) return arr;
+        const copy = [...arr];
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+        return copy;
+    };
+
+    const remove = <T extends { id?: number }>(arr: T[], i: number, mark: (id: number) => void) => {
+        const item = arr[i];
+        if (item.id) mark(item.id);
+        return arr.filter((_, idx) => idx !== i);
+    };
+
+    const upload = async (file: File, folder: string) => {
+        const fd = new FormData();
+        fd.set('file', file);
+        fd.set('folder', folder);
+        return uploadImage(fd);
+    };
+
+    const save = async () => {
+        if (!profile) return;
+        setBusy(true);
+        setStatus(null);
+        try {
+            const res = await saveAll({ profile, skills, projects, deletedSkills, deletedProjects });
+            setProfile(res.profile);
+            setSkills(res.skills);
+            setProjects(res.projects);
+            setSaved(fingerprint(res.profile, res.skills, res.projects));
+            setDeletedSkills([]);
+            setDeletedProjects([]);
+            setStatus({ ok: true, text: 'Tersimpan. Portofolio langsung ter-update.' });
+        } catch (e: any) {
+            setStatus({ ok: false, text: e.message });
+        } finally {
+            setBusy(false);
+            setTimeout(() => setStatus(null), 6000);
+        }
+    };
+
+    // Ctrl/Cmd+S buat nyimpen — handler-nya dipasang sekali, jadi simpan versi terbaru di ref.
+    const saveRef = useRef(save);
+    saveRef.current = save;
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const [dataRes, iconsRes] = await Promise.all([
-                    fetch('/api/data', { cache: 'no-store' }),
-                    fetch('/api/icons', { cache: 'no-store' })
-                ]);
-
-                if (!dataRes.ok) throw new Error('Gagal memuat data portofolio.');
-                if (!iconsRes.ok) throw new Error('Gagal memuat ikon.');
-
-                const portfolioData = await dataRes.json();
-                const iconsData = await iconsRes.json();
-
-                setData(portfolioData);
-                setAvailableIcons(iconsData.icons || []);
-
-            } catch (err: any) {
-                console.error("Gagal memuat data:", err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
+        const onKey = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                saveRef.current();
             }
         };
-        fetchData();
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
     }, []);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setData(prev => {
-            if (!prev) return null;
-            if (name.startsWith('education.')) {
-                const field = name.split('.')[1];
-                return { ...prev, education: { ...prev.education, [field]: value } };
-            }
-            return { ...prev, [name]: value };
-        });
+    // Peringatan kalau nutup tab dengan perubahan yang belum disimpan.
+    useEffect(() => {
+        const warn = (e: BeforeUnloadEvent) => { if (dirty) e.preventDefault(); };
+        window.addEventListener('beforeunload', warn);
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [dirty]);
+
+    if (!profile) {
+        return (
+            <div className="grid h-screen place-items-center bg-white text-black">
+                <p className="border-[3px] border-black px-6 py-4 text-[11px] font-bold uppercase tracking-[0.14em] shadow-[4px_4px_0_0_#0A0A0A]">
+                    {status ? `Error: ${status.text}` : 'Memuat dashboard...'}
+                </p>
+            </div>
+        );
+    }
+
+    const counts: Partial<Record<Tab, number>> = {
+        experience: profile.experience.length,
+        softskills: profile.softSkills.length,
+        skills: skills.length,
+        projects: projects.length,
     };
-
-    const handleArrayChange = (arrayName: 'projects' | 'tools', index: number, field: string, value: string | string[]) => {
-        setData(prevData => {
-            if (!prevData) return prevData;
-            const newArray = [...(prevData[arrayName] as any[])];
-            const item = { ...newArray[index] };
-
-            if (field === 'tech' && 'tech' in item && typeof value === 'string') {
-                (item as Project).tech = value.split(',').map(t => t.trim());
-            } else {
-                (item as any)[field] = value;
-            }
-
-            newArray[index] = item;
-            return { ...prevData, [arrayName]: newArray };
-        });
-    };
-
-    const handleAddItem = (arrayName: 'projects' | 'tools') => {
-        if (arrayName === 'tools') {
-            openIconPicker('new');
-            return;
-        }
-        setData(prev => {
-            if (!prev) return prev;
-            const newItem = { title: 'Proyek Baru', tech: [], imgSrc: '' };
-            return { ...prev, [arrayName]: [...prev.projects, newItem] };
-        });
-    };
-
-    const handleRemoveItem = (arrayName: 'projects' | 'tools', index: number) => {
-        setData(prev => {
-            if (!prev) return prev;
-            // --- PERBAIKAN: Konfirmasi sebelum menghapus ---
-            const itemName = arrayName === 'projects'
-                ? prev.projects[index]?.title
-                : prev.tools[index]?.name;
-            if (window.confirm(`Anda yakin ingin menghapus "${itemName}"?`)) {
-                return { ...prev, [arrayName]: (prev[arrayName] as any[]).filter((_, i) => i !== index) };
-            }
-            return prev;
-        });
-    };
-
-    const handleFileRead = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            handleArrayChange('projects', index, 'imgSrc', event.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const openIconPicker = (index: 'new' | number) => {
-        setCurrentTargetToolIndex(index);
-        setIconPickerOpen(true);
-    };
-
-    const generateNameFromFilename = (filename: string): string => {
-        return filename.split('.')[0].replace(/icons8-|-|_/g, ' ').replace(/\d+/g, '').trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    };
-
-    const handleIconSelect = (iconFilename: string) => {
-        if (currentTargetToolIndex === null) return;
-        const name = generateNameFromFilename(iconFilename);
-        const iconPath = `/assets/icon/${iconFilename}`;
-        setData(prev => {
-            if (!prev) return prev;
-            let newTools = [...prev.tools];
-            if (currentTargetToolIndex === 'new') {
-                newTools.push({ name, icon: iconPath });
-            } else {
-                const item = { ...newTools[currentTargetToolIndex], name, icon: iconPath };
-                newTools[currentTargetToolIndex] = item;
-            }
-            return { ...prev, tools: newTools };
-        });
-        setIconPickerOpen(false);
-        setCurrentTargetToolIndex(null);
-    };
-
-    const handleSave = async () => {
-        if (!data) return;
-        setSaving(true);
-        setMessage('');
-        setError(null);
-        try {
-            const response = await fetch('/api/data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Gagal menyimpan data.');
-            setMessage(result.message);
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
-            setSaving(false);
-            setTimeout(() => { setMessage(''); setError(null); }, 3000);
-        }
-    };
-
-    if (loading) return <div className="flex items-center justify-center h-screen bg-gray-900 text-white"><p>Loading Dashboard...</p></div>;
-    if (error && !data) return <div className="flex items-center justify-center h-screen bg-gray-900 text-red-400"><p>Error: {error}</p></div>;
-
-    const navItems = [
-        { id: 'about', label: 'About Me', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-        { id: 'education', label: 'Education', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-        { id: 'projects', label: 'Projects', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-        { id: 'tools', label: 'Tools & Others', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' }
-    ];
+    const current = TABS.find((t) => t.id === tab)!;
+    const shown = skills.map((s, i) => ({ s, i })).filter(({ s }) => s.name.toLowerCase().includes(q.toLowerCase()));
 
     return (
-        <div className="flex h-screen bg-gray-900 text-white font-sans">
-            <aside className="w-64 flex-shrink-0 bg-gray-800 flex flex-col">
-                <div className="h-20 flex items-center justify-center text-2xl font-bold border-b border-gray-700">
-                    Dashboard
+        <div className="flex h-screen bg-white text-black">
+            <aside className="flex w-[280px] shrink-0 flex-col border-r-[3px] border-black bg-white p-5">
+                <div className="mb-6 border-b-[3px] border-black pb-4">
+                    <p className="text-2xl font-black uppercase italic leading-none tracking-tight">Dashboard</p>
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Galuh Wikri — Portfolio</p>
                 </div>
-                <nav className="flex-grow px-4 py-6">
-                    {navItems.map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveView(item.id as ActiveView)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 my-1 rounded-lg transition-colors ${activeView === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
-                                }`}
-                        >
-                            <Icon d={item.icon} />
-                            <span>{item.label}</span>
+
+                <nav className="flex flex-1 flex-col gap-2 overflow-y-auto">
+                    {TABS.map((t, i) => (
+                        <button key={t.id} onClick={() => setTab(t.id)}
+                            aria-current={tab === t.id}
+                            className={`flex w-full items-center gap-3 border-2 border-black px-3 py-2.5 text-left transition-all ${tab === t.id
+                                ? 'bg-black text-white'
+                                : 'bg-white hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0_0_#0A0A0A]'}`}>
+                            <span className={`text-xl font-black italic leading-none ${tab === t.id ? 'opacity-40' : 'opacity-25'}`}>
+                                {String(i + 1).padStart(2, '0')}
+                            </span>
+                            <span className="flex-1 text-[11px] font-bold uppercase tracking-[0.08em]">{t.label}</span>
+                            {counts[t.id] !== undefined && <span className="text-[10px] font-bold opacity-50">{counts[t.id]}</span>}
                         </button>
                     ))}
                 </nav>
-                <div className="p-4 border-t border-gray-700">
-                    <a href="/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white">
-                        <Icon d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        <span>Lihat Portofolio</span>
-                    </a>
-                </div>
+
+                <a href="/" target="_blank" rel="noopener noreferrer"
+                    className="mt-5 border-2 border-black px-3 py-3 text-center text-[11px] font-bold uppercase tracking-[0.1em] transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:bg-black hover:text-white hover:shadow-[4px_4px_0_0_#0A0A0A]">
+                    Lihat Portofolio ↗
+                </a>
             </aside>
 
-            <main className="flex-1 flex flex-col overflow-hidden">
-                {/* --- PERBAIKAN: Header lebih bersih dan informatif --- */}
-                <header className="h-20 bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 flex items-center justify-between px-8 sticky top-0 z-10">
-                    <h1 className="text-xl font-semibold">Edit <span className='text-blue-400'>{navItems.find(i => i.id === activeView)?.label}</span></h1>
-                    <div className="flex items-center gap-4">
-                        {message && <p className="text-sm text-green-400">{message}</p>}
-                        {error && <p className="text-sm text-red-400">{error}</p>}
-                        <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg">
-                            {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+            <main className="flex flex-1 flex-col overflow-hidden">
+                <header className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b-[3px] border-black bg-white px-8 py-5">
+                    <div>
+                        <h1 className="text-3xl font-black uppercase leading-none tracking-tight">{current.label}</h1>
+                        <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">
+                            {busy ? 'Menyimpan...' : dirty ? '● Ada perubahan belum disimpan' : '✓ Semua perubahan tersimpan'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={load} disabled={busy || !dirty} className={whiteBtn}>Batal</button>
+                        <button onClick={save} disabled={busy || !dirty} className={blackBtn}>
+                            {busy ? 'Menyimpan...' : 'Simpan (Ctrl+S)'}
                         </button>
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                    {data && (
+                <div className="flex-1 space-y-6 overflow-y-auto p-8">
+                    {tab === 'about' && (
+                        <div className="max-w-4xl">
+                            <label className={lab}>Tentang kamu — tampil di section About</label>
+                            <textarea className={input} rows={14} value={profile.aboutMe}
+                                onChange={(e) => setP({ aboutMe: e.target.value })} placeholder="Tentang kamu..." />
+                        </div>
+                    )}
+
+                    {tab === 'education' && (
+                        <div className="max-w-xl space-y-4">
+                            {(['university', 'major', 'period'] as const).map((f) => (
+                                <div key={f}>
+                                    <label className={lab}>{f}</label>
+                                    <input className={input} value={profile.education[f]}
+                                        onChange={(e) => setP({ education: { ...profile.education, [f]: e.target.value } })} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {tab === 'experience' && (
                         <>
-                            {activeView === 'about' && (
-                                <SectionWrapper title="About Me">
-                                    <textarea
-                                        name="aboutMe"
-                                        value={data.aboutMe}
-                                        onChange={handleInputChange}
-                                        rows={10}
-                                        className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                                        placeholder='Tuliskan sesuatu tentang dirimu...'
-                                    />
-                                </SectionWrapper>
-                            )}
-
-                            {activeView === 'education' && (
-                                <SectionWrapper title="Education">
-                                    <div className="space-y-4">
-                                        <div><label className="block text-sm font-medium text-gray-300 mb-2">Universitas</label><input type="text" name="education.university" value={data.education.university} onChange={handleInputChange} className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" /></div>
-                                        <div><label className="block text-sm font-medium text-gray-300 mb-2">Jurusan</label><input type="text" name="education.major" value={data.education.major} onChange={handleInputChange} className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" /></div>
-                                        <div><label className="block text-sm font-medium text-gray-300 mb-2">Periode</label><input type="text" name="education.period" value={data.education.period} onChange={handleInputChange} className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" placeholder='Contoh: 2022 - Sekarang' /></div>
-                                    </div>
-                                </SectionWrapper>
-                            )}
-
-                            {activeView === 'projects' && (
-                                <SectionWrapper title="Projects" onAddItem={() => handleAddItem('projects')} addItemLabel="Tambah Proyek">
-                                    {data.projects.map((project, index) => (
-                                        <div key={project.id || `project-${index}`} className="bg-gray-700/50 p-5 rounded-lg border border-gray-600 space-y-4 relative group">
-                                            <button onClick={() => handleRemoveItem('projects', index)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700">&times;</button>
-                                            <input type="text" placeholder="Judul Proyek" value={project.title} onChange={(e) => handleArrayChange('projects', index, 'title', e.target.value)} className="w-full p-3 bg-gray-600 border border-gray-500 rounded-md text-lg font-semibold" />
-                                            <textarea placeholder="Teknologi yang digunakan (pisahkan dengan koma)" value={project.tech.join(', ')} onChange={(e) => handleArrayChange('projects', index, 'tech', e.target.value)} className="w-full p-3 bg-gray-600 border border-gray-500 rounded-md text-sm" rows={2} />
-                                            <div className='flex items-center gap-4'>
-                                                <Image src={project.imgSrc || '/assets/image/placeholder.png'} alt="Preview" width={120} height={80} className="object-cover rounded-md bg-gray-600" />
-                                                <label htmlFor={`upload-project-${index}`} className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-all">
-                                                    {project.imgSrc ? 'Ganti Gambar' : 'Pilih Gambar'}
-                                                </label>
-                                                <input id={`upload-project-${index}`} type="file" accept="image/*" onChange={(e) => handleFileRead(e, index)} className="hidden" />
+                            <button className={blackBtn}
+                                onClick={() => setP({ experience: [...profile.experience, { company: '', position: '', period: '', description: '' }] })}>
+                                + Tambah Pengalaman
+                            </button>
+                            {profile.experience.map((exp, i) => (
+                                <Row key={i}>
+                                    <div className="flex gap-3">
+                                        <UpDown onUp={() => setP({ experience: move(profile.experience, i, -1) })}
+                                            onDown={() => setP({ experience: move(profile.experience, i, 1) })} />
+                                        <div className="flex-1 space-y-3">
+                                            <div className="grid gap-3 md:grid-cols-3">
+                                                <div>
+                                                    <label className={lab}>Perusahaan</label>
+                                                    <input className={input} value={exp.company}
+                                                        onChange={(e) => setP({ experience: patch(profile.experience, i, { company: e.target.value }) })} />
+                                                </div>
+                                                <div>
+                                                    <label className={lab}>Posisi</label>
+                                                    <input className={input} value={exp.position}
+                                                        onChange={(e) => setP({ experience: patch(profile.experience, i, { position: e.target.value }) })} />
+                                                </div>
+                                                <div>
+                                                    <label className={lab}>Periode</label>
+                                                    <input className={input} placeholder="Jul 2024 - May 2025" value={exp.period}
+                                                        onChange={(e) => setP({ experience: patch(profile.experience, i, { period: e.target.value }) })} />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className={lab}>Deskripsi</label>
+                                                <textarea className={input} rows={3} value={exp.description}
+                                                    onChange={(e) => setP({ experience: patch(profile.experience, i, { description: e.target.value }) })} />
                                             </div>
                                         </div>
-                                    ))}
-                                </SectionWrapper>
-                            )}
+                                        <Remove onClick={() => setP({ experience: profile.experience.filter((_, x) => x !== i) })} />
+                                    </div>
+                                </Row>
+                            ))}
+                        </>
+                    )}
 
-                            {activeView === 'tools' && (
-                                <SectionWrapper title="Tools & Others" onAddItem={() => handleAddItem('tools')} addItemLabel="Tambah Tool">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {data.tools.map((tool, index) => (
-                                            <div key={tool.id || `tool-${index}`} className="bg-gray-700 p-4 rounded-lg flex gap-4 items-center justify-between hover:bg-gray-600/50 transition-colors group">
-                                                <div className="flex items-center gap-4">
-                                                    {tool.icon && <Image src={tool.icon} alt={tool.name} width={40} height={40} className="object-contain bg-gray-800 rounded-md p-1" />}
-                                                    <p className="font-semibold text-gray-200">{tool.name}</p>
+                    {tab === 'contact' && (
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className={`${box} space-y-4 p-5`}>
+                                <h2 className="border-b-2 border-black pb-2 text-sm font-black uppercase tracking-[0.1em]">Contact</h2>
+                                {(['location', 'email', 'phone'] as const).map((f) => (
+                                    <div key={f}>
+                                        <label className={lab}>{f}</label>
+                                        <input className={input} value={profile.contact[f]}
+                                            onChange={(e) => setP({ contact: { ...profile.contact, [f]: e.target.value } })} />
+                                    </div>
+                                ))}
+                            </div>
+                            <div className={`${box} space-y-4 p-5`}>
+                                <h2 className="border-b-2 border-black pb-2 text-sm font-black uppercase tracking-[0.1em]">Social Links</h2>
+                                {(['github', 'linkedin', 'instagram'] as const).map((f) => (
+                                    <div key={f}>
+                                        <label className={lab}>{f}</label>
+                                        <input className={input} value={profile.socials[f]}
+                                            onChange={(e) => setP({ socials: { ...profile.socials, [f]: e.target.value } })} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {tab === 'softskills' && (
+                        <>
+                            <button className={blackBtn} onClick={() => setP({ softSkills: [...profile.softSkills, ''] })}>
+                                + Tambah Soft Skill
+                            </button>
+                            <div className="grid gap-3 md:grid-cols-3">
+                                {profile.softSkills.map((s, i) => (
+                                    <div key={i} className="flex gap-2">
+                                        <input className={input} value={s}
+                                            onChange={(e) => setP({ softSkills: patch(profile.softSkills, i, e.target.value) })} />
+                                        <Remove onClick={() => setP({ softSkills: profile.softSkills.filter((_, x) => x !== i) })} />
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    {tab === 'skills' && (
+                        <>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <button className={blackBtn}
+                                    onClick={() => setSkills([...skills, { name: '', icon_url: '', category: 'Also Working With', order_index: skills.length, is_active: true }])}>
+                                    + Tambah Skill
+                                </button>
+                                <input className={`${input} max-w-xs`} placeholder="Cari skill..." value={q}
+                                    onChange={(e) => setQ(e.target.value)} />
+                                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">
+                                    {shown.length} / {skills.length} skill
+                                </span>
+                            </div>
+                            <div className="grid gap-4 xl:grid-cols-2">
+                                {shown.map(({ s, i }) => (
+                                    <Row key={s.id ?? `new-${i}`}>
+                                        <div className="flex gap-3">
+                                            <UpDown onUp={() => setSkills(move(skills, i, -1))} onDown={() => setSkills(move(skills, i, 1))} />
+                                            <img src={s.icon_url || '/assets/icon/icons8-code-48.png'} alt="" width={48} height={48}
+                                                className="h-12 w-12 shrink-0 border-2 border-black bg-white object-contain p-1" />
+                                            <div className="flex-1 space-y-2">
+                                                <div className="grid gap-3 md:grid-cols-2">
+                                                    <div>
+                                                        <label className={lab}>Nama</label>
+                                                        <input className={input} value={s.name}
+                                                            onChange={(e) => setSkills(patch(skills, i, { name: e.target.value }))} />
+                                                    </div>
+                                                    <div>
+                                                        <label className={lab}>Icon URL</label>
+                                                        <input className={input} value={s.icon_url}
+                                                            onChange={(e) => setSkills(patch(skills, i, { icon_url: e.target.value }))} />
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => openIconPicker(index)} className="p-2 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700"><Icon d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z" /></button>
-                                                    <button onClick={() => handleRemoveItem('tools', index)} className="p-2 bg-red-600 text-white rounded-md text-xs hover:bg-red-700"><Icon d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></button>
+                                                <div>
+                                                    <label className={lab}>Filter di portofolio (boleh lebih dari satu)</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {SKILL_FILTERS.map((f) => {
+                                                            const on = s.category.split(',').map((x) => x.trim()).includes(f);
+                                                            return (
+                                                                <label key={f} className={`flex cursor-pointer items-center gap-2 border-2 border-black px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.06em] transition-colors ${on ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}>
+                                                                    <input type="checkbox" className="peer sr-only" checked={on}
+                                                                        onChange={() => setSkills(patch(skills, i, { category: toggleFilter(s.category, f) }))} />
+                                                                    <span className={`grid h-3.5 w-3.5 shrink-0 place-items-center border-2 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-black ${on ? 'border-white' : 'border-black'}`}>
+                                                                        {on && <span className="h-1.5 w-1.5 bg-white" />}
+                                                                    </span>
+                                                                    {f}
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    <p className="mt-2 text-[10px] text-gray-500">
+                                                        Kosong = otomatis masuk <b>Also Working With</b>.
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-3 border-t-2 border-black pt-3">
+                                                    <Toggle checked={s.is_active} label="Tampil" onChange={(v) => setSkills(patch(skills, i, { is_active: v }))} />
+                                                    <button type="button" onClick={() => setPickerFor(i)} className={whiteBtn}>Pilih Ikon</button>
+                                                    <label className={`${whiteBtn} cursor-pointer`}>
+                                                        Upload Ikon
+                                                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                                            const f = e.target.files?.[0];
+                                                            if (!f) return;
+                                                            try { setSkills(patch(skills, i, { icon_url: await upload(f, 'skills') })); }
+                                                            catch (err: any) { setStatus({ ok: false, text: err.message }); }
+                                                        }} />
+                                                    </label>
                                                 </div>
                                             </div>
-                                        ))}
+                                            <Remove onClick={() => setSkills(remove(skills, i, (id) => setDeletedSkills((d) => [...d, id])))} />
+                                        </div>
+                                    </Row>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    {tab === 'projects' && (
+                        <>
+                            <button className={blackBtn}
+                                onClick={() => setProjects([...projects, { title: '', category: 'WEB', tech: [], image_url: '', order_index: projects.length, is_featured: false, is_active: true }])}>
+                                + Tambah Project
+                            </button>
+                            {projects.map((p, i) => (
+                                <Row key={p.id ?? `new-${i}`}>
+                                    <div className="flex gap-3">
+                                        <UpDown onUp={() => setProjects(move(projects, i, -1))} onDown={() => setProjects(move(projects, i, 1))} />
+                                        <div className="grid flex-1 gap-3 md:grid-cols-2">
+                                            <div>
+                                                <label className={lab}>Judul</label>
+                                                <input className={input} value={p.title}
+                                                    onChange={(e) => setProjects(patch(projects, i, { title: e.target.value }))} />
+                                            </div>
+                                            <div>
+                                                <label className={lab}>Kategori</label>
+                                                <select className={input} value={p.category}
+                                                    onChange={(e) => setProjects(patch(projects, i, { category: e.target.value as Project['category'] }))}>
+                                                    <option value="WEB">WEB</option>
+                                                    <option value="UI/UX">UI/UX</option>
+                                                </select>
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className={lab}>Tech (pisah pakai koma)</label>
+                                                <input className={input} value={(p.tech || []).join(', ')}
+                                                    onChange={(e) => setProjects(patch(projects, i, { tech: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) }))} />
+                                            </div>
+                                            <div>
+                                                <label className={lab}>Link demo</label>
+                                                <input className={input} value={p.link || ''}
+                                                    onChange={(e) => setProjects(patch(projects, i, { link: e.target.value }))} />
+                                            </div>
+                                            <div>
+                                                <label className={lab}>Link GitHub</label>
+                                                <input className={input} value={p.github || ''}
+                                                    onChange={(e) => setProjects(patch(projects, i, { github: e.target.value }))} />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className={lab}>Gambar URL</label>
+                                                <input className={input} value={p.image_url || ''}
+                                                    onChange={(e) => setProjects(patch(projects, i, { image_url: e.target.value }))} />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className={lab}>Deskripsi</label>
+                                                <textarea className={input} rows={3} value={p.description || ''}
+                                                    onChange={(e) => setProjects(patch(projects, i, { description: e.target.value }))} />
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-4 border-t-2 border-black pt-3 md:col-span-2">
+                                                <img src={p.image_url || '/assets/image/placeholder.png'} alt="" width={120} height={72}
+                                                    className="h-[72px] w-[120px] border-2 border-black bg-white object-cover" />
+                                                <label className={`${whiteBtn} cursor-pointer`}>
+                                                    Upload Gambar
+                                                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                                        const f = e.target.files?.[0];
+                                                        if (!f) return;
+                                                        try { setProjects(patch(projects, i, { image_url: await upload(f, 'projects') })); }
+                                                        catch (err: any) { setStatus({ ok: false, text: err.message }); }
+                                                    }} />
+                                                </label>
+                                                <Toggle checked={p.is_featured} label="Featured" onChange={(v) => setProjects(patch(projects, i, { is_featured: v }))} />
+                                                <Toggle checked={p.is_active} label="Tampil" onChange={(v) => setProjects(patch(projects, i, { is_active: v }))} />
+                                            </div>
+                                        </div>
+                                        <Remove onClick={() => setProjects(remove(projects, i, (id) => setDeletedProjects((d) => [...d, id])))} />
                                     </div>
-                                </SectionWrapper>
-                            )}
+                                </Row>
+                            ))}
                         </>
                     )}
                 </div>
             </main>
 
-            {isIconPickerOpen && (
-                <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-                    <div className="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-4xl">
-                        <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold">Pilih Ikon</h3><button onClick={() => setIconPickerOpen(false)} className="text-2xl font-bold">&times;</button></div>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 max-h-[60vh] overflow-y-auto p-2 bg-gray-900 rounded-md">
-                            {availableIcons.map(icon => (
-                                <div key={icon} onClick={() => handleIconSelect(icon)} className="p-2 bg-gray-700 rounded-md cursor-pointer hover:bg-blue-600 transition-colors flex flex-col items-center justify-center aspect-square gap-2">
-                                    <Image src={`/assets/icon/${icon}`} alt={icon} width={48} height={48} className="object-contain" />
-                                    <p className='text-[10px] text-center text-gray-300 break-all'>{generateNameFromFilename(icon)}</p>
-                                </div>
+            {status && (
+                <div className={`fixed bottom-6 right-6 z-50 border-[3px] border-black px-5 py-3 text-[11px] font-bold uppercase tracking-[0.1em] shadow-[6px_6px_0_0_#0A0A0A] ${status.ok ? 'bg-black text-white' : 'bg-white text-red-600'}`}>
+                    {status.text}
+                </div>
+            )}
+
+            {pickerFor !== null && (
+                <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4" onClick={() => setPickerFor(null)}>
+                    <div className={`${box} w-full max-w-4xl p-6`} onClick={(e) => e.stopPropagation()}>
+                        <div className="mb-4 flex items-center justify-between border-b-[3px] border-black pb-3">
+                            <h3 className="text-xl font-black uppercase tracking-tight">Pilih Ikon</h3>
+                            <button type="button" onClick={() => setPickerFor(null)} className={whiteBtn}>Tutup</button>
+                        </div>
+                        <div className="grid max-h-[60vh] grid-cols-4 gap-3 overflow-y-auto p-1 md:grid-cols-8 lg:grid-cols-10">
+                            {icons.map((icon) => (
+                                <button key={icon} type="button" title={icon}
+                                    onClick={() => { setSkills(patch(skills, pickerFor, { icon_url: `/assets/icon/${icon}` })); setPickerFor(null); }}
+                                    className="grid aspect-square place-items-center border-2 border-black bg-white p-2 transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0_0_#0A0A0A]">
+                                    <img src={`/assets/icon/${icon}`} alt={icon} className="h-8 w-8 object-contain" />
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -353,4 +525,13 @@ export default function Dashboard() {
             )}
         </div>
     );
+}
+
+// Ganti satu field pada item array tanpa mengubah item lain.
+function patch<T>(arr: T[], index: number, value: T | Partial<T>): T[] {
+    const copy = [...arr];
+    copy[index] = typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? { ...copy[index], ...value }
+        : (value as T);
+    return copy;
 }

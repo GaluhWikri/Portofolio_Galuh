@@ -79,6 +79,50 @@
     {
       "name": "NodeJS",
       "icon": "/assets/icon/icons8-nodejs-48.png"
+    },
+    {
+      "name": "Laravel",
+      "icon": "/assets/icon/icons8-laravel-48.png"
+    },
+    {
+      "name": "PostgreSQL",
+      "icon": "/assets/icon/icons8-postgresql-48.png"
+    },
+    {
+      "name": "Kotlin",
+      "icon": "/assets/icon/icons8-kotlin-48.png"
+    },
+    {
+      "name": "HTML",
+      "icon": "/assets/icon/icons8-html-5-48.png"
+    },
+    {
+      "name": "CSS",
+      "icon": "/assets/icon/icons8-css3-48.png"
+    },
+    {
+      "name": "Next.js",
+      "icon": "/assets/icon/icons8-nextjs-48.png"
+    },
+    {
+      "name": "ERD",
+      "icon": "/assets/icon/icons8-erd-48.png"
+    },
+    {
+      "name": "System Design",
+      "icon": "/assets/icon/icons8-system-design-48.png"
+    },
+    {
+      "name": "Database Schema",
+      "icon": "/assets/icon/icons8-database-schema-48.png"
+    },
+    {
+      "name": "API Design",
+      "icon": "/assets/icon/icons8-api-design-48.png"
+    },
+    {
+      "name": "Technical Documentation",
+      "icon": "/assets/icon/icons8-technical-documentation-48.png"
     }
   ],
   

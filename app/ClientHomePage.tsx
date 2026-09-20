@@ -1,10 +1,10 @@
 // app/ClientHomePage.tsx
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { ArrowUpRight, Download, Mail, ExternalLink, Copy, Check, MapPin, Phone, User, FolderOpen, Zap, Home, Menu, X, Briefcase } from 'lucide-react';
+import { ArrowUpRight, Download, Mail, ExternalLink, Copy, Check, MapPin, Phone, User, FolderOpen, Zap, Home, Menu, X, Briefcase, Code, Layers, Puzzle, Network, Wrench, LayoutGrid } from 'lucide-react';
 import { FaGithub, FaLinkedinIn, FaInstagram, FaDribbble } from 'react-icons/fa';
 import InteractiveBackground from './components/InteractiveBackground/InteractiveBackground';
 import ClientOnly from './components/ClientOnly';
@@ -33,7 +33,28 @@ interface Project {
 interface SkillItem {
     name: string;
     icon: string;
+    filters?: string;
 }
+
+// Filter kategori skill
+const SKILL_FILTERS = ['ALL', 'Programming Languages', 'Primary Stack', 'Also Working With', 'Systems & Design', 'Tools'] as const;
+type SkillFilter = typeof SKILL_FILTERS[number];
+
+const FILTER_ICONS: Record<SkillFilter, React.ReactNode> = {
+    'ALL': <LayoutGrid size={12} />,
+    'Programming Languages': <Code size={12} />,
+    'Primary Stack': <Layers size={12} />,
+    'Also Working With': <Puzzle size={12} />,
+    'Systems & Design': <Network size={12} />,
+    'Tools': <Wrench size={12} />,
+};
+
+// Filter dibaca dari data (kolom skills.category, dipisah koma) — diatur di /dashboard tab Skills & Tools.
+// Skill yang belum diisi filter otomatis masuk 'Also Working With'.
+const filtersFor = (t: SkillItem): SkillFilter[] => {
+    const f = (t.filters || '').split(',').map((s) => s.trim()).filter((s): s is SkillFilter => SKILL_FILTERS.includes(s as SkillFilter));
+    return f.length ? f : ['Also Working With'];
+};
 
 interface NavItem {
     id: string;
@@ -158,6 +179,7 @@ export default function ClientHomePage({ data }: { data: any }) {
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [skillMode, setSkillMode] = useState<'grid' | 'physics'>('physics');
+    const [skillFilter, setSkillFilter] = useState<SkillFilter>('ALL');
 
     // Contact form states
     const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -171,7 +193,20 @@ export default function ClientHomePage({ data }: { data: any }) {
     const heroTextRef = useRef<HTMLDivElement>(null);
 
     const { aboutMe, education, experience, projects, tools } = data;
+    const contact = data.contact || { location: 'Bandung, Indonesia', email: 'galuhwikri05@gmail.com', phone: '+62 812 **** ****' };
+    const socials = data.socials || {
+        github: 'https://github.com/GaluhWikri',
+        linkedin: 'https://www.linkedin.com/in/galuhwikri/',
+        instagram: 'https://www.instagram.com/galuh.wikri/',
+    };
+    const softSkills: string[] = data.softSkills || [];
     const cvPath = '/assets/cv/Galuh Wikri Ramadhan_cv.pdf';
+
+    const allTools: SkillItem[] = tools || [];
+    const filteredTools = useMemo(
+        () => allTools.filter((t) => skillFilter === 'ALL' || filtersFor(t).includes(skillFilter)),
+        [tools, skillFilter]
+    );
 
     const handlePanelScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const st = e.currentTarget.scrollTop;
@@ -281,7 +316,7 @@ export default function ClientHomePage({ data }: { data: any }) {
 
     // Copy email handler
     const handleCopyEmail = () => {
-        navigator.clipboard.writeText('galuhwikri05@gmail.com');
+        navigator.clipboard.writeText(contact.email);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -686,13 +721,16 @@ export default function ClientHomePage({ data }: { data: any }) {
                                         <div className="w-full h-full bg-white border-4 border-black shadow-[8px_8px_0px_#000] overflow-hidden flex flex-col">
                                             {/* Header Bar dengan Toggle Buttons INSIDE the box */}
                                             <div className="bg-gray-50 border-b-4 border-black p-4 flex flex-wrap justify-between items-center gap-4 select-none">
-                                                <span className="font-extrabold text-xs uppercase tracking-wider text-black">SKILLS & TOOLS</span>
+                                                <span className="font-extrabold text-xs uppercase tracking-wider text-black">
+                                                    SKILLS &amp; TOOLS
+                                                    <span className="ml-2 font-mono text-gray-500">{filteredTools.length}/{allTools.length}</span>
+                                                </span>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => setSkillMode('physics')}
                                                         className={`neo-button text-xs py-1 px-3 ${skillMode === 'physics' ? 'neo-button-dark' : ''}`}
                                                     >
-                                                        Globe Mode (3D)
+                                                        3D Mode
                                                     </button>
                                                     <button
                                                         onClick={() => setSkillMode('grid')}
@@ -701,6 +739,21 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                         Grid Mode
                                                     </button>
                                                 </div>
+                                            </div>
+
+                                            {/* Filter Bar */}
+                                            <div className="border-b-4 border-black bg-white p-3 flex flex-wrap gap-2 select-none">
+                                                {SKILL_FILTERS.map((f) => (
+                                                    <button
+                                                        key={f}
+                                                        onClick={() => setSkillFilter(f)}
+                                                        aria-pressed={skillFilter === f}
+                                                        className={`flex items-center gap-1.5 px-2.5 py-1.5 border-2 border-black text-[10px] md:text-[11px] font-extrabold uppercase tracking-tight transition-all duration-150 shadow-[2px_2px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] ${skillFilter === f ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}
+                                                    >
+                                                        {FILTER_ICONS[f]}
+                                                        <span>{f}</span>
+                                                    </button>
+                                                ))}
                                             </div>
 
                                             {/* Area Konten Box */}
@@ -715,7 +768,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                             transition={{ duration: 0.15 }}
                                                             className="flex-1 flex items-center justify-center min-h-[440px] md:min-h-[480px]"
                                                         >
-                                                            <FloatingSkills skills={tools} />
+                                                            <FloatingSkills key={skillFilter} skills={filteredTools} />
                                                         </motion.div>
                                                     ) : (
                                                         <motion.div
@@ -727,7 +780,10 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                             className="flex-1 w-full"
                                                         >
                                                             <ClientOnly>
-                                                                <PhysicsSkills skills={tools} />
+                                                                <PhysicsSkills
+                                                                    skills={filteredTools}
+                                                                    formation={skillFilter === 'ALL' ? 'globe' : 'ring'}
+                                                                />
                                                             </ClientOnly>
                                                         </motion.div>
                                                     )}
@@ -745,17 +801,14 @@ export default function ClientHomePage({ data }: { data: any }) {
                                                     SOFT SKILLS
                                                 </span>
                                                 <span className="font-mono text-xs font-bold text-gray-500">
-                                                    18 SKILLS
+                                                    {softSkills.length} SKILLS
                                                 </span>
                                             </div>
 
                                             {/* Area Konten Grid Soft Skills */}
                                             <div className="p-4 md:p-5 flex-1 flex flex-col justify-between">
                                                 <div className="grid grid-cols-2 gap-2 h-full content-between">
-                                                    {['Problem Solving', 'Communication', 'Team Leadership', 'Time Management', 'Design Thinking',
-                                                        'Critical Thinking', 'Adaptability', 'Creativity', 'Collaboration', 'Empathy', 'Flexibility',
-                                                        'Innovation', 'Leadership', 'Motivation', 'Organization', 'Planning',
-                                                        'Project Management', 'Teamwork'].map((skill, index) => (
+                                                    {softSkills.map((skill, index) => (
                                                             <div
                                                                 key={index}
                                                                 className="w-full py-2.5 px-2 bg-white border-2 border-black shadow-[2px_2px_0px_#000] flex items-center justify-center text-center text-[10px] xl:text-[11px] font-extrabold text-black uppercase tracking-tight leading-none transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#000] hover:bg-black hover:text-white cursor-default select-none whitespace-nowrap"
@@ -905,15 +958,15 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             <div className="contact-info-list">
                                                 <div className="contact-info-item">
                                                     <MapPin size={18} />
-                                                    <span>Bandung, Indonesia</span>
+                                                    <span>{contact.location}</span>
                                                 </div>
                                                 <div className="contact-info-item">
                                                     <Mail size={18} />
-                                                    <span>galuhwikri05@gmail.com</span>
+                                                    <span>{contact.email}</span>
                                                 </div>
                                                 <div className="contact-info-item">
                                                     <Phone size={18} />
-                                                    <span>+62 812 **** ****</span>
+                                                    <span>{contact.phone}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -924,13 +977,13 @@ export default function ClientHomePage({ data }: { data: any }) {
                                             <div className="contact-card-divider"></div>
 
                                             <div className="social-links-grid">
-                                                <a href="https://github.com/GaluhWikri" target="_blank" rel="noopener noreferrer" className="social-link-box">
+                                                <a href={socials.github} target="_blank" rel="noopener noreferrer" className="social-link-box">
                                                     <FaGithub size={22} />
                                                 </a>
-                                                <a href="https://www.linkedin.com/in/galuhwikri/" target="_blank" rel="noopener noreferrer" className="social-link-box">
+                                                <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="social-link-box">
                                                     <FaLinkedinIn size={22} />
                                                 </a>
-                                                <a href="https://www.instagram.com/galuh.wikri/" target="_blank" rel="noopener noreferrer" className="social-link-box">
+                                                <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="social-link-box">
                                                     <FaInstagram size={22} />
                                                 </a>
                                             </div>
