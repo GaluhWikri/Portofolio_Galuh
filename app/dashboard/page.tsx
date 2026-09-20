@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Experience, ProfileDoc } from '@/lib/content';
 import type { Project, Skill } from '@/lib/supabase';
 import { loadAll, saveAll, uploadImage } from './actions';
+import { logout } from '../login/actions';
 
 type Tab = 'about' | 'education' | 'experience' | 'contact' | 'softskills' | 'skills' | 'projects';
 
@@ -236,6 +237,9 @@ export default function Dashboard() {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
+                        <form action={logout}>
+                            <button className={whiteBtn}>Keluar</button>
+                        </form>
                         <button onClick={load} disabled={busy || !dirty} className={whiteBtn}>Batal</button>
                         <button onClick={save} disabled={busy || !dirty} className={blackBtn}>
                             {busy ? 'Menyimpan...' : 'Simpan (Ctrl+S)'}

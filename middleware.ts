@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { SESSION_COOKIE, isValidSession } from '@/lib/auth';
 
-// /dashboard menulis ke Supabase pakai service role key, jadi dikunci HTTP Basic Auth.
-// Set ADMIN_PASSWORD di .env.local (lokal) atau env Vercel (produksi).
-// Kalau ADMIN_PASSWORD kosong, dashboard terbuka (perilaku lama).
-export function middleware(req: NextRequest) {
-    const password = process.env.ADMIN_PASSWORD;
-    if (!password) return NextResponse.next();
+// /dashboard menulis ke Supabase pakai service role key, jadi wajib login.
+// Tanpa cookie sesi yang sah -> dilempar ke /login (bukan lagi prompt Basic Auth).
+export async function middleware(req: NextRequest) {
+    if (await isValidSession(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
 
-    const encoded = (req.headers.get('authorization') || '').split(' ')[1];
-    const decoded = encoded ? atob(encoded) : '';
-
-    if (decoded === `admin:${password}`) return NextResponse.next();
-
-    return new NextResponse('Unauthorized', {
-        status: 401,
-        headers: { 'WWW-Authenticate': 'Basic realm="Dashboard"' },
-    });
+    const url = req.nextUrl.clone();
+    url.pathname = '/login';
+    url.search = '';
+    return NextResponse.redirect(url);
 }
 
 export const config = {
