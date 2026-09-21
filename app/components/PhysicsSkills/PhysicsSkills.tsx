@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useTexture, TrackballControls, Billboard, Text } from '@react-three/drei';
+import { TrackballControls, Billboard, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import useIsMobile from '@/app/hooks/useIsMobile';
 
@@ -14,7 +14,31 @@ interface SkillItem {
 // Komponen kartu logo individual yang selalu menghadap kamera
 // size: skala kartu (1 = ukuran penuh). Mengecil otomatis saat skill banyak.
 const SkillBadge = ({ icon, name, position, size }: { icon: string; name: string; position: THREE.Vector3; size: number }) => {
-    const map = useTexture(icon);
+    // Ikon dimuat manual, BUKAN lewat useTexture. useTexture melempar error kalau gambarnya gagal
+    // (404, atau diblokir CORS seperti dashboardicons.com) dan error itu menjatuhkan seluruh
+    // halaman jadi putih. Di sini gagal = kartu ini saja yang pakai huruf awal.
+    const [map, setMap] = useState<THREE.Texture | null>(null);
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        setMap(null);
+        setFailed(false);
+        if (!icon) {
+            setFailed(true);
+            return;
+        }
+        let alive = true;
+        new THREE.TextureLoader().load(
+            icon,
+            (t) => alive && setMap(t),
+            undefined,
+            () => alive && setFailed(true),
+        );
+        return () => {
+            alive = false;
+        };
+    }, [icon]);
+
     const groupRef = useRef<THREE.Group>(null);
     const [hovered, setHovered] = useState(false);
 
@@ -57,10 +81,25 @@ const SkillBadge = ({ icon, name, position, size }: { icon: string; name: string
                 </mesh>
 
                 {/* Gambar Ikon Skill (Sangat Tajam & Tidak Terdistorsi) */}
-                <mesh position={[0, 0, 0.01]}>
-                    <planeGeometry args={[1.0 * size, 1.0 * size]} />
-                    <meshBasicMaterial map={map} transparent={true} toneMapped={false} />
-                </mesh>
+                {map ? (
+                    <mesh position={[0, 0, 0.01]}>
+                        <planeGeometry args={[1.0 * size, 1.0 * size]} />
+                        <meshBasicMaterial map={map} transparent={true} toneMapped={false} />
+                    </mesh>
+                ) : failed ? (
+                    /* Ikon kosong / gagal dimuat: skill tetap tampil pakai huruf awal, jadi
+                       jumlahnya tetap cocok dengan counter dan tidak hilang diam-diam. */
+                    <Text
+                        position={[0, 0, 0.01]}
+                        fontSize={0.6 * size}
+                        color="#0A0A0A"
+                        anchorX="center"
+                        anchorY="middle"
+                        fontWeight="bold"
+                    >
+                        {(name || '?').charAt(0).toUpperCase()}
+                    </Text>
+                ) : null}
 
                 {/* Teks Nama Keahlian Saat Hover — ukurannya tetap supaya selalu terbaca */}
                 {hovered && (
@@ -178,9 +217,8 @@ const SkillGlobeGroup = ({ skills, radius, formation }: { skills: SkillItem[]; r
 
 export default function PhysicsSkills({ skills, formation = 'globe' }: { skills: SkillItem[]; formation?: 'globe' | 'ring' }) {
     const isMobile = useIsMobile();
-    const validSkills = useMemo(() => skills.filter(s => s.icon && s.icon.length > 0), [skills]);
 
-    if (validSkills.length === 0) return <div>No skills data</div>;
+    if (skills.length === 0) return <div>No skills data</div>;
 
     // Radius bola; bentuk cincin menghitung radiusnya sendiri dari jumlah skill
     const globeRadius = isMobile ? 2.4 : 3.0;
@@ -192,7 +230,7 @@ export default function PhysicsSkills({ skills, formation = 'globe' }: { skills:
                 <ambientLight intensity={1.5} />
                 <pointLight position={[10, 10, 10]} intensity={1.5} />
                 
-                <SkillGlobeGroup skills={validSkills} radius={globeRadius} formation={formation} />
+                <SkillGlobeGroup skills={skills} radius={globeRadius} formation={formation} />
                 
                 <TrackballControls 
                     noPan={true}
