@@ -11,33 +11,101 @@ interface SkillItem {
     icon: string;
 }
 
+// Cache tekstur per URL. Ganti-ganti filter tidak lagi mengunduh ulang gambar yang sama, dan
+// kegagalan ikut di-cache supaya 404 tidak dihantam berulang tiap render. Entri dibatasi jumlah
+// ikon unik (~36), jadi tidak menumpuk di GPU.
+const texCache = new Map<string, THREE.Texture | null>();
+
+const muatTekstur = (url: string) =>
+    new Promise<THREE.Texture | null>((resolve) => {
+        if (texCache.has(url)) return resolve(texCache.get(url) ?? null);
+        new THREE.TextureLoader().load(
+            url,
+            (t) => {
+                t.colorSpace = THREE.SRGBColorSpace;
+                texCache.set(url, t);
+                resolve(t);
+            },
+            undefined,
+            () => {
+                texCache.set(url, null);
+                resolve(null);
+            },
+        );
+    });
+
+// Huruf awal untuk skill tanpa ikon, digambar ke canvas 2D — bukan komponen <Text> (troika).
+// Troika mengunduh font dari CDN dan membuat web worker; kalau gagal, kartu skill baru yang
+// belum punya ikon tampil kosong. Canvas 2D selalu tersedia dan tidak butuh jaringan.
+const hurufCache = new Map<string, THREE.Texture>();
+
+const hurufTekstur = (ch: string) => {
+    const hit = hurufCache.get(ch);
+    if (hit) return hit;
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d')!;
+    g.fillStyle = '#0A0A0A';
+    g.font = 'bold 96px system-ui, -apple-system, Segoe UI, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(ch, 64, 70);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    hurufCache.set(ch, t);
+    return t;
+};
+
+// Jaring pengaman: kalau three/WebGL melempar error, hanya section skill yang jatuh ke daftar
+// teks — halaman tidak ikut jadi putih dan tetap bisa di-scroll.
+class BatasError extends React.Component<{ children: React.ReactNode; fallback: React.ReactNode }, { gagal: boolean }> {
+    state = { gagal: false };
+    static getDerivedStateFromError() {
+        return { gagal: true };
+    }
+    render() {
+        return this.state.gagal ? this.props.fallback : this.props.children;
+    }
+}
+
+const DaftarSkill = ({ skills }: { skills: SkillItem[] }) => (
+    <div className="flex h-full flex-wrap content-center items-center justify-center gap-2 overflow-auto p-6">
+        {skills.map((s, i) => (
+            <span key={s.name || i} className="border-2 border-black bg-white px-3 py-1.5 text-xs font-bold uppercase">
+                {s.name}
+            </span>
+        ))}
+    </div>
+);
+
 // Komponen kartu logo individual yang selalu menghadap kamera
 // size: skala kartu (1 = ukuran penuh). Mengecil otomatis saat skill banyak.
 const SkillBadge = ({ icon, name, position, size }: { icon: string; name: string; position: THREE.Vector3; size: number }) => {
     // Ikon dimuat manual, BUKAN lewat useTexture. useTexture melempar error kalau gambarnya gagal
     // (404, atau diblokir CORS seperti dashboardicons.com) dan error itu menjatuhkan seluruh
     // halaman jadi putih. Di sini gagal = kartu ini saja yang pakai huruf awal.
-    const [map, setMap] = useState<THREE.Texture | null>(null);
+    const [tex, setTex] = useState<THREE.Texture | null>(null);
     const [failed, setFailed] = useState(false);
 
     useEffect(() => {
-        setMap(null);
+        let alive = true;
+        setTex(null);
         setFailed(false);
         if (!icon) {
             setFailed(true);
             return;
         }
-        let alive = true;
-        new THREE.TextureLoader().load(
-            icon,
-            (t) => alive && setMap(t),
-            undefined,
-            () => alive && setFailed(true),
-        );
+        muatTekstur(icon).then((t) => {
+            if (!alive) return;
+            if (t) setTex(t);
+            else setFailed(true);
+        });
         return () => {
             alive = false;
         };
     }, [icon]);
+
+    const map = tex ?? (failed ? hurufTekstur((name || '?').charAt(0).toUpperCase()) : null);
 
     const groupRef = useRef<THREE.Group>(null);
     const [hovered, setHovered] = useState(false);
@@ -80,26 +148,15 @@ const SkillBadge = ({ icon, name, position, size }: { icon: string; name: string
                     <meshBasicMaterial color="white" />
                 </mesh>
 
-                {/* Gambar Ikon Skill (Sangat Tajam & Tidak Terdistorsi) */}
-                {map ? (
+                {/* Gambar Ikon Skill (Sangat Tajam & Tidak Terdistorsi).
+                    Kalau ikon belum diisi / gagal dimuat, `map` berisi huruf awal hasil canvas —
+                    skill tetap tampil, jadi jumlahnya cocok dengan counter dan tidak hilang. */}
+                {map && (
                     <mesh position={[0, 0, 0.01]}>
                         <planeGeometry args={[1.0 * size, 1.0 * size]} />
                         <meshBasicMaterial map={map} transparent={true} toneMapped={false} />
                     </mesh>
-                ) : failed ? (
-                    /* Ikon kosong / gagal dimuat: skill tetap tampil pakai huruf awal, jadi
-                       jumlahnya tetap cocok dengan counter dan tidak hilang diam-diam. */
-                    <Text
-                        position={[0, 0, 0.01]}
-                        fontSize={0.6 * size}
-                        color="#0A0A0A"
-                        anchorX="center"
-                        anchorY="middle"
-                        fontWeight="bold"
-                    >
-                        {(name || '?').charAt(0).toUpperCase()}
-                    </Text>
-                ) : null}
+                )}
 
                 {/* Teks Nama Keahlian Saat Hover — ukurannya tetap supaya selalu terbaca */}
                 {hovered && (
@@ -226,20 +283,32 @@ export default function PhysicsSkills({ skills, formation = 'globe' }: { skills:
 
     return (
         <div className="w-full h-[400px] md:h-[500px] bg-white relative overflow-hidden">
-            <Canvas camera={{ position: [0, 0, cameraDistance], fov: 45 }}>
-                <ambientLight intensity={1.5} />
-                <pointLight position={[10, 10, 10]} intensity={1.5} />
-                
-                <SkillGlobeGroup skills={skills} radius={globeRadius} formation={formation} />
-                
-                <TrackballControls 
-                    noPan={true}
-                    noZoom={true}
-                    staticMoving={false}
-                    dynamicDampingFactor={0.1}
-                    rotateSpeed={2.5}
-                />
-            </Canvas>
+            {/* BatasError di-key ulang tiap ganti filter, jadi sekali gagal pun filter berikutnya
+                masih dicoba — bukan langsung mati permanen. */}
+            <BatasError key={`${formation}-${skills.length}`} fallback={<DaftarSkill skills={skills} />}>
+                <Canvas
+                    camera={{ position: [0, 0, cameraDistance], fov: 45 }}
+                    onCreated={({ gl }) => {
+                        // Konteks WebGL bisa hilang (GPU sibuk, tab lama nganggur, driver reset).
+                        // preventDefault = browser boleh memulihkannya; tanpa ini kanvas tinggal
+                        // putih sampai halaman di-reload.
+                        gl.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false);
+                    }}
+                >
+                    <ambientLight intensity={1.5} />
+                    <pointLight position={[10, 10, 10]} intensity={1.5} />
+
+                    <SkillGlobeGroup skills={skills} radius={globeRadius} formation={formation} />
+
+                    <TrackballControls
+                        noPan={true}
+                        noZoom={true}
+                        staticMoving={false}
+                        dynamicDampingFactor={0.1}
+                        rotateSpeed={2.5}
+                    />
+                </Canvas>
+            </BatasError>
         </div>
     );
 }

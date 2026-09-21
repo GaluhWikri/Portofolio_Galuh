@@ -37,11 +37,16 @@ const blackBtn = 'border-2 border-black bg-black px-4 py-2.5 text-[11px] font-bo
 const whiteBtn = 'border-2 border-black bg-white px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.1em] text-black transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0_0_#0A0A0A]';
 const check = 'h-4 w-4 shrink-0 accent-black';
 
+// Placeholder ikon: dulu menunjuk /assets/icon/icons8-code-48.png yang tidak pernah ada di repo
+// -> 404 tiap render. Data URI = tidak ada request jaringan sama sekali.
+const ICON_KOSONG =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23fff'/%3E%3Crect x='12' y='22' width='24' height='4' fill='%23c9c9c9'/%3E%3C/svg%3E";
+
 // Daftar filter skill — harus sama dengan SKILL_FILTERS di app/ClientHomePage.tsx
 const SKILL_FILTERS = ['Programming Languages', 'Primary Stack', 'Also Working With', 'Systems & Design', 'Tools'];
 
 const toggleFilter = (current: string, f: string) => {
-    const on = current.split(',').map((x) => x.trim()).filter(Boolean);
+    const on = (current ?? '').split(',').map((x) => x.trim()).filter(Boolean);
     return (on.includes(f) ? on.filter((x) => x !== f) : [...on, f]).join(', ');
 };
 
@@ -370,7 +375,7 @@ export default function Dashboard() {
                                     <Row key={s.id ?? `new-${i}`}>
                                         <div className="flex gap-3">
                                             <UpDown onUp={() => setSkills(move(skills, i, -1))} onDown={() => setSkills(move(skills, i, 1))} />
-                                            <img src={s.icon_url || '/assets/icon/icons8-code-48.png'} alt="" width={48} height={48}
+                                            <img src={s.icon_url || ICON_KOSONG} alt="" width={48} height={48}
                                                 className="h-12 w-12 shrink-0 border-2 border-black bg-white object-contain p-1" />
                                             <div className="flex-1 space-y-2">
                                                 <div className="grid gap-3 md:grid-cols-2">
@@ -389,9 +394,9 @@ export default function Dashboard() {
                                                     <label className={lab}>Filter di portofolio (boleh lebih dari satu)</label>
                                                     <div className="flex flex-wrap gap-2">
                                                         {SKILL_FILTERS.map((f) => {
-                                                            const on = s.category.split(',').map((x) => x.trim()).includes(f);
+                                                            const on = (s.category ?? '').split(',').map((x) => x.trim()).includes(f);
                                                             return (
-                                                                <label key={f} className={`flex cursor-pointer items-center gap-2 border-2 border-black px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.06em] transition-colors ${on ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}>
+                                                                <label key={f} className={`relative flex cursor-pointer items-center gap-2 border-2 border-black px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.06em] transition-colors ${on ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}>
                                                                     <input type="checkbox" className="peer sr-only" checked={on}
                                                                         onChange={() => setSkills(patch(skills, i, { category: toggleFilter(s.category, f) }))} />
                                                                     <span className={`grid h-3.5 w-3.5 shrink-0 place-items-center border-2 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-black ${on ? 'border-white' : 'border-black'}`}>
