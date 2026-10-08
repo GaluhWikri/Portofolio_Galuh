@@ -841,7 +841,7 @@ export default function ClientHomePage({ data }: { data: any }) {
                                 {/* Header - GET IN TOUCH */}
                                 <div className="contact-header">
                                     <h2 className="contact-header-title">
-                                        GET IN<br />TOUCH_
+                                        HIRE ME TO UNLOCK <br />MY FULL POTENTIAL_
                                     </h2>
                                 </div>
 
